@@ -1837,8 +1837,10 @@ name = "web-porto-app"
 version = "0.1.0"
 dependencies = [
  "dioxus",
+ "js-sys",
  "log",
  "serde",
+ "serde_json",
  "shared",
  "toml",
  "wasm-bindgen",
