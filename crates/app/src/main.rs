@@ -1,5 +1,6 @@
 use dioxus::prelude::*;
 
+mod canvas;
 mod components;
 mod data;
 mod pages;

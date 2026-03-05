@@ -10,5 +10,6 @@ serde.workspace = true
 toml.workspace = true
 wasm-bindgen.workspace = true
 web-sys = { workspace = true, features = ["Window", "Document", "HtmlCanvasElement", "CanvasRenderingContext2d", "console"] }
+js-sys = "0.3"
 log = "0.4"
 wasm-logger = "0.2"
