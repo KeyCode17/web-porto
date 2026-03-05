@@ -15,6 +15,7 @@ use pages::chat::Chat;
 
 #[derive(Clone, Debug, PartialEq, Routable)]
 enum Route {
+    #[layout(Layout)]
     #[route("/")]
     Home {},
 
@@ -40,12 +41,20 @@ fn main() {
 
 fn app() -> Element {
     rsx! {
+        Router::<Route> {}
+    }
+}
+
+/// Layout wrapping all routes — renders navbar, global styles, cursor
+#[component]
+fn Layout() -> Element {
+    rsx! {
         style { "{styles::global::global_css()}" }
         components::cursor::CustomCursor {}
         components::navbar::Navbar {}
         div {
             style: "padding-top: 60px;",
-            Router::<Route> {}
+            Outlet::<Route> {}
         }
     }
 }

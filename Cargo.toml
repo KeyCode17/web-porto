@@ -12,5 +12,5 @@ edition = "2024"
 [workspace.dependencies]
 serde = { version = "1", features = ["derive"] }
 toml = "0.8"
-wasm-bindgen = "0.2"
+wasm-bindgen = "=0.2.108"
 web-sys = "0.3"
