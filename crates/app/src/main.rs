@@ -1,7 +1,9 @@
 use dioxus::prelude::*;
 
+mod components;
 mod data;
 mod pages;
+mod styles;
 
 use pages::home::Home;
 use pages::projects::Projects;
@@ -37,6 +39,11 @@ fn main() {
 
 fn app() -> Element {
     rsx! {
-        Router::<Route> {}
+        style { "{styles::global::global_css()}" }
+        components::navbar::Navbar {}
+        div {
+            style: "padding-top: 60px;",
+            Router::<Route> {}
+        }
     }
 }
