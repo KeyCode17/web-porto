@@ -61,6 +61,26 @@ pub fn Home() -> Element {
         }
         section { id: "skills", style: "padding: 4rem 2rem;", "Skills Section" }
         section { id: "experience", style: "padding: 4rem 2rem;", "Experience Section" }
-        section { id: "contact", style: "padding: 4rem 2rem;", "Contact Section" }
+        section { id: "contact",
+            style: "padding: 6rem 2rem; background-color: {theme::DEEP_NAVY}; color: {theme::MINT_WHITE};",
+            div { style: "max-width: 1200px; margin: 0 auto;",
+                h2 {
+                    style: "font-size: 5rem; font-weight: 700; text-transform: uppercase; margin-bottom: 2rem;",
+                    "CONTACT"
+                }
+                div {
+                    style: "display: flex; gap: 3rem; flex-wrap: wrap;",
+                    for link in about.social_links.iter() {
+                        a {
+                            href: "{link.url}",
+                            target: "_blank",
+                            rel: "noopener noreferrer",
+                            style: "font-size: 1.5rem; font-weight: 700; color: {theme::MINT_WHITE}; text-transform: uppercase; border: 3px solid {theme::MINT_WHITE}; padding: 1rem 2rem; transition: all 0.2s;",
+                            "{link.platform}"
+                        }
+                    }
+                }
+            }
+        }
     }
 }
