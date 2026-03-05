@@ -50,6 +50,57 @@ a:hover {{
 @media (hover: none) {{
     .custom-cursor {{ display: none; }}
 }}
+
+/* Tablet */
+@media (max-width: 1024px) {{
+    h1 {{ font-size: 4rem !important; }}
+    h2 {{ font-size: 3rem !important; }}
+}}
+
+/* Mobile */
+@media (max-width: 768px) {{
+    h1 {{ font-size: 2.5rem !important; }}
+    h2 {{ font-size: 2rem !important; }}
+
+    /* Stack navbar vertically */
+    .nav-links {{
+        flex-direction: column;
+        gap: 0.5rem !important;
+        align-items: flex-end;
+    }}
+
+    /* Reduce section padding */
+    section {{
+        padding: 3rem 1rem !important;
+    }}
+
+    /* Skills canvas smaller */
+    #skills-canvas {{
+        height: 400px !important;
+    }}
+
+    /* Timeline: disable scroll hijack on mobile */
+    #timeline-scroll-container {{
+        height: auto !important;
+    }}
+
+    #timeline-track {{
+        flex-direction: column !important;
+        transform: none !important;
+        padding: 2rem 1rem !important;
+        gap: 1.5rem !important;
+    }}
+
+    #timeline-track > div {{
+        min-width: auto !important;
+        max-width: 100% !important;
+    }}
+}}
+
+/* Small mobile */
+@media (max-width: 480px) {{
+    h1 {{ font-size: 2rem !important; }}
+}}
 "#,
         mint_white = theme::MINT_WHITE,
         deep_navy = theme::DEEP_NAVY,

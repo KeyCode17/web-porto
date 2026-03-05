@@ -12,6 +12,7 @@ pub fn Navbar() -> Element {
                 span { style: "color: {theme::MINT_WHITE}; font-size: 1.2rem;", "PORTO" }
             }
             div {
+                class: "nav-links",
                 style: "display: flex; gap: 2rem;",
                 Link { to: Route::Home {}, span { style: "color: {theme::MINT_WHITE};", "HOME" } }
                 Link { to: Route::Projects {}, span { style: "color: {theme::MINT_WHITE};", "PROJECTS" } }
