@@ -1,0 +1,14 @@
+[package]
+name = "web-porto-app"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+shared = { path = "../shared" }
+dioxus = { version = "0.6", features = ["web"] }
+serde.workspace = true
+toml.workspace = true
+wasm-bindgen.workspace = true
+web-sys = { workspace = true, features = ["Window", "Document", "HtmlCanvasElement", "CanvasRenderingContext2d", "console"] }
+log = "0.4"
+wasm-logger = "0.2"

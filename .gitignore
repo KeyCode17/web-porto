@@ -1,1 +1,8 @@
+/target
+/dist
+/pkg
+*.wasm
+!static/**
+result
+.direnv
 docs/
