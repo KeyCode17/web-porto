@@ -1,5 +1,5 @@
 use dioxus::prelude::*;
-use crate::canvas::particles;
+use crate::canvas::{force_graph, particles};
 use crate::data;
 use crate::styles::theme;
 
@@ -9,6 +9,9 @@ pub fn Home() -> Element {
 
     use_effect(move || {
         particles::start_particles("hero-canvas");
+        let skills = data::load_skills();
+        let skills_json = serde_json::to_string(&skills).unwrap();
+        force_graph::start_force_graph("skills-canvas", &skills_json);
     });
 
     rsx! {
@@ -59,7 +62,19 @@ pub fn Home() -> Element {
                 }
             }
         }
-        section { id: "skills", style: "padding: 4rem 2rem;", "Skills Section" }
+        section { id: "skills",
+            style: "padding: 6rem 2rem; min-height: 80vh;",
+            div { style: "max-width: 1200px; margin: 0 auto;",
+                h2 {
+                    style: "font-size: 5rem; font-weight: 700; color: {theme::DEEP_NAVY}; text-transform: uppercase; margin-bottom: 2rem;",
+                    "SKILLS"
+                }
+                canvas {
+                    id: "skills-canvas",
+                    style: "width: 100%; height: 600px; border: 3px solid {theme::DEEP_NAVY};",
+                }
+            }
+        }
         section { id: "experience", style: "padding: 4rem 2rem;", "Experience Section" }
         section { id: "contact",
             style: "padding: 6rem 2rem; background-color: {theme::DEEP_NAVY}; color: {theme::MINT_WHITE};",
