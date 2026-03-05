@@ -1,0 +1,8 @@
+[[paper]]
+slug = "sample-paper"
+title = "Sample Research Paper"
+authors = ["Your Name"]
+venue = "Conference 2025"
+abstract = "This paper explores..."
+pdf_file = "sample-paper.pdf"
+tags = ["AI", "LLM"]

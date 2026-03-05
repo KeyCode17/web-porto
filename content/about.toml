@@ -1,0 +1,14 @@
+[about]
+name = "Your Name"
+title = "AI Software Engineer"
+narrative = "I build intelligent systems at the intersection of AI and systems engineering."
+facts = [
+  { label = "Focus", value = "AI/ML + Systems" },
+  { label = "Stack", value = "Rust, Python, Nix" },
+  { label = "Based in", value = "Earth" },
+]
+social_links = [
+  { platform = "github", url = "https://github.com/yourusername" },
+  { platform = "linkedin", url = "https://linkedin.com/in/yourusername" },
+  { platform = "email", url = "mailto:you@example.com" },
+]

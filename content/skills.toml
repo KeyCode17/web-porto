@@ -1,0 +1,53 @@
+[[skill]]
+name = "Rust"
+category = "language"
+proficiency = 3
+connections = ["WASM", "Nix"]
+
+[[skill]]
+name = "Python"
+category = "language"
+proficiency = 5
+connections = ["PyTorch", "LLMs"]
+
+[[skill]]
+name = "PyTorch"
+category = "ai"
+proficiency = 5
+connections = ["Python", "LLMs"]
+
+[[skill]]
+name = "WASM"
+category = "tool"
+proficiency = 3
+connections = ["Rust", "Dioxus"]
+
+[[skill]]
+name = "Nix"
+category = "infra"
+proficiency = 4
+connections = ["Rust", "NixOS"]
+
+[[skill]]
+name = "LLMs"
+category = "ai"
+proficiency = 5
+connections = ["Python", "PyTorch", "Fine-tuning"]
+
+[[skill]]
+name = "Dioxus"
+category = "framework"
+proficiency = 2
+connections = ["Rust", "WASM"]
+
+[[skill]]
+name = "NixOS"
+category = "infra"
+proficiency = 4
+connections = ["Nix"]
+
+[[skill]]
+name = "Fine-tuning"
+category = "ai"
+proficiency = 4
+connections = ["LLMs", "PyTorch"]

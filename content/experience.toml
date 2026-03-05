@@ -1,0 +1,8 @@
+[[experience]]
+company = "Company Name"
+role = "AI Software Engineer"
+start_date = "2024-01"
+end_date = ""
+summary = "Building AI systems"
+details = "Detailed description of work..."
+tech = ["Python", "Rust", "LLMs"]

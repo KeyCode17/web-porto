@@ -1,0 +1,10 @@
+[[project]]
+slug = "sample-project"
+title = "Sample AI Project"
+short_description = "An example project placeholder"
+long_description = "This is a detailed description of the project..."
+tech_stack = ["Rust", "Python", "PyTorch"]
+category = "ai"
+repo_url = "https://github.com/yourusername/sample"
+demo_url = ""
+images = []
