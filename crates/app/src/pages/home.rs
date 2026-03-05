@@ -1,5 +1,6 @@
 use dioxus::prelude::*;
 use crate::canvas::{force_graph, particles};
+use crate::components::timeline::Timeline;
 use crate::data;
 use crate::styles::theme;
 
@@ -75,7 +76,7 @@ pub fn Home() -> Element {
                 }
             }
         }
-        section { id: "experience", style: "padding: 4rem 2rem;", "Experience Section" }
+        Timeline {}
         section { id: "contact",
             style: "padding: 6rem 2rem; background-color: {theme::DEEP_NAVY}; color: {theme::MINT_WHITE};",
             div { style: "max-width: 1200px; margin: 0 auto;",

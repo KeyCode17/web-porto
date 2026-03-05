@@ -34,7 +34,7 @@ pub struct Project {
     pub images: Vec<String>,
 }
 
-#[derive(Debug, Deserialize, Clone)]
+#[derive(Debug, Deserialize, Clone, PartialEq)]
 pub struct Experience {
     pub company: String,
     pub role: String,
