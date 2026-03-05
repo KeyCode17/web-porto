@@ -31,6 +31,25 @@ a {{
 a:hover {{
     color: {dark_brown};
 }}
+
+[data-reveal] {{
+    opacity: 0;
+    transform: translateY(30px);
+    transition: opacity 0.6s ease, transform 0.6s ease;
+}}
+
+[data-reveal].revealed {{
+    opacity: 1;
+    transform: translateY(0);
+}}
+
+@media (hover: hover) {{
+    * {{ cursor: none !important; }}
+}}
+
+@media (hover: none) {{
+    .custom-cursor {{ display: none; }}
+}}
 "#,
         mint_white = theme::MINT_WHITE,
         deep_navy = theme::DEEP_NAVY,

@@ -41,6 +41,7 @@ fn main() {
 fn app() -> Element {
     rsx! {
         style { "{styles::global::global_css()}" }
+        components::cursor::CustomCursor {}
         components::navbar::Navbar {}
         div {
             style: "padding-top: 60px;",
