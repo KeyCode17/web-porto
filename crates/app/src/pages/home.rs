@@ -1,5 +1,5 @@
 use dioxus::prelude::*;
-use crate::canvas::{force_graph, particles};
+use crate::canvas::{force_graph, particles, scroll_reveal};
 use crate::components::timeline::Timeline;
 use crate::data;
 use crate::styles::theme;
@@ -13,6 +13,7 @@ pub fn Home() -> Element {
         let skills = data::load_skills();
         let skills_json = serde_json::to_string(&skills).unwrap();
         force_graph::start_force_graph("skills-canvas", &skills_json);
+        scroll_reveal::init_scroll_reveals();
     });
 
     rsx! {
@@ -35,6 +36,7 @@ pub fn Home() -> Element {
             }
         }
         section { id: "about",
+            "data-reveal": "true",
             style: "padding: 6rem 2rem; background-color: {theme::WARM_BEIGE};",
             div { style: "max-width: 1200px; margin: 0 auto;",
                 h2 {
@@ -64,6 +66,7 @@ pub fn Home() -> Element {
             }
         }
         section { id: "skills",
+            "data-reveal": "true",
             style: "padding: 6rem 2rem; min-height: 80vh;",
             div { style: "max-width: 1200px; margin: 0 auto;",
                 h2 {
@@ -78,6 +81,7 @@ pub fn Home() -> Element {
         }
         Timeline {}
         section { id: "contact",
+            "data-reveal": "true",
             style: "padding: 6rem 2rem; background-color: {theme::DEEP_NAVY}; color: {theme::MINT_WHITE};",
             div { style: "max-width: 1200px; margin: 0 auto;",
                 h2 {
