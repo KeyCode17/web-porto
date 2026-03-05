@@ -30,7 +30,35 @@ pub fn Home() -> Element {
                 }
             }
         }
-        section { id: "about", style: "padding: 4rem 2rem;", "About Section" }
+        section { id: "about",
+            style: "padding: 6rem 2rem; background-color: {theme::WARM_BEIGE};",
+            div { style: "max-width: 1200px; margin: 0 auto;",
+                h2 {
+                    style: "font-size: 5rem; font-weight: 700; color: {theme::DEEP_NAVY}; text-transform: uppercase; margin-bottom: 2rem;",
+                    "ABOUT"
+                }
+                p {
+                    style: "font-size: 1.3rem; line-height: 1.8; color: {theme::DEEP_NAVY}; max-width: 700px; margin-bottom: 3rem;",
+                    "{about.narrative}"
+                }
+                div {
+                    style: "display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 2rem;",
+                    for fact in about.facts.iter() {
+                        div {
+                            style: "border: 3px solid {theme::DEEP_NAVY}; padding: 1.5rem;",
+                            p {
+                                style: "font-family: {theme::FONT_MONO}; font-size: 0.9rem; color: {theme::MUTED_TEAL}; text-transform: uppercase;",
+                                "{fact.label}"
+                            }
+                            p {
+                                style: "font-size: 1.8rem; font-weight: 700; color: {theme::DEEP_NAVY}; margin-top: 0.5rem;",
+                                "{fact.value}"
+                            }
+                        }
+                    }
+                }
+            }
+        }
         section { id: "skills", style: "padding: 4rem 2rem;", "Skills Section" }
         section { id: "experience", style: "padding: 4rem 2rem;", "Experience Section" }
         section { id: "contact", style: "padding: 4rem 2rem;", "Contact Section" }
