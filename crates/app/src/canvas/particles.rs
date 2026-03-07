@@ -6,7 +6,7 @@ use web_sys::{CanvasRenderingContext2d, HtmlCanvasElement};
 
 const PARTICLE_COUNT: usize = 120;
 const CONNECTION_DISTANCE: f64 = 120.0;
-const COLORS: [&str; 4] = ["#273B76", "#93B7BE", "#D5C7BC", "#4C2E05"];
+const COLORS: [&str; 4] = ["#02182B", "#568EA3", "#591F0A", "#D65108"];
 
 struct Particle {
     x: f64,
@@ -15,6 +15,15 @@ struct Particle {
     vy: f64,
     radius: f64,
     color: &'static str,
+}
+
+struct TextRect {
+    left: f64,
+    top: f64,
+    right: f64,
+    bottom: f64,
+    _cx: f64,
+    _cy: f64,
 }
 
 fn random_range(min: f64, max: f64) -> f64 {
@@ -37,6 +46,71 @@ fn init_particles(width: f64, height: f64) -> Vec<Particle> {
             }
         })
         .collect()
+}
+
+/// Get the bounding rect of the hero-name element relative to the canvas
+fn get_text_rect() -> Option<TextRect> {
+    let document = web_sys::window()?.document()?;
+    let el = document.get_element_by_id("hero-name")?;
+    let canvas = document.get_element_by_id("hero-canvas")?;
+
+    let text_rect = el.get_bounding_client_rect();
+    let canvas_rect = canvas.get_bounding_client_rect();
+
+    // Convert to canvas-relative coordinates
+    let left = text_rect.left() - canvas_rect.left();
+    let top = text_rect.top() - canvas_rect.top();
+    let right = text_rect.right() - canvas_rect.left();
+    let bottom = text_rect.bottom() - canvas_rect.top();
+
+    // Add padding around text for repulsion zone
+    let pad = 20.0;
+    Some(TextRect {
+        left: left - pad,
+        top: top - pad,
+        right: right + pad,
+        bottom: bottom + pad,
+        _cx: (left + right) / 2.0,
+        _cy: (top + bottom) / 2.0,
+    })
+}
+
+/// Push particle out of text rect with gentle repulsion
+fn repel_from_text(p: &mut Particle, tr: &TextRect) {
+    // Find nearest point on rect to particle
+    let nearest_x = p.x.clamp(tr.left, tr.right);
+    let nearest_y = p.y.clamp(tr.top, tr.bottom);
+    let dx = p.x - nearest_x;
+    let dy = p.y - nearest_y;
+    let dist = (dx * dx + dy * dy).sqrt();
+
+    if dist < 0.1 {
+        // Inside the rect — nudge outward from center
+        let cx = (tr.left + tr.right) / 2.0;
+        let cy = (tr.top + tr.bottom) / 2.0;
+        let to_cx = p.x - cx;
+        let to_cy = p.y - cy;
+        let d = (to_cx * to_cx + to_cy * to_cy).sqrt().max(1.0);
+        p.vx += (to_cx / d) * 0.15;
+        p.vy += (to_cy / d) * 0.15;
+    } else {
+        // Outside but near — very soft repulsion
+        let repel_range = 25.0;
+        if dist < repel_range {
+            let force = (1.0 - dist / repel_range) * 0.1;
+            p.vx += (dx / dist) * force;
+            p.vy += (dy / dist) * force;
+        }
+    }
+}
+
+fn clamp_velocity(p: &mut Particle) {
+    let max_speed = 2.0;
+    let speed = (p.vx * p.vx + p.vy * p.vy).sqrt();
+    if speed > max_speed {
+        p.vx = (p.vx / speed) * max_speed;
+        p.vy = (p.vy / speed) * max_speed;
+    }
 }
 
 fn request_animation_frame(f: &Closure<dyn FnMut()>) {
@@ -107,11 +181,23 @@ pub fn start_particles(canvas_id: &str) {
 
         let mut parts = particles.borrow_mut();
 
+        // Get current text rect (changes as text zooms)
+        let text_rect = get_text_rect();
+
         // Update positions
         for p in parts.iter_mut() {
             p.x += p.vx;
             p.y += p.vy;
 
+            // Repel from text
+            if let Some(ref tr) = text_rect {
+                repel_from_text(p, tr);
+            }
+
+            // Clamp velocity so particles never go crazy
+            clamp_velocity(p);
+
+            // Bounce off walls
             if p.x <= 0.0 || p.x >= w {
                 p.vx = -p.vx;
                 p.x = p.x.clamp(0.0, w);
@@ -131,7 +217,7 @@ pub fn start_particles(canvas_id: &str) {
                 let dist = (dx * dx + dy * dy).sqrt();
                 if dist < CONNECTION_DISTANCE {
                     let alpha = 1.0 - dist / CONNECTION_DISTANCE;
-                    let style = format!("rgba(39, 59, 118, {:.2})", alpha * 0.3);
+                    let style = format!("rgba(2, 24, 43, {:.2})", alpha * 0.3);
                     ctx_for_loop.set_stroke_style_str(&style);
                     ctx_for_loop.set_line_width(0.5);
                     ctx_for_loop.begin_path();

@@ -11,7 +11,9 @@ pub fn PaperDetail(slug: String) -> Element {
     match paper {
         Some(paper) => {
             let authors_str = paper.authors.join(", ");
-            let pdf_url = format!("/static/papers/{}", paper.pdf_file);
+            let has_pdf = !paper.pdf_file.is_empty();
+            let has_url = !paper.url.is_empty();
+            let pdf_url = format!("/papers/{}", paper.pdf_file);
 
             rsx! {
                 div { style: "padding: 6rem 2rem; min-height: 100vh;",
@@ -47,23 +49,46 @@ pub fn PaperDetail(slug: String) -> Element {
                         }
                         // Abstract
                         div {
-                            style: "border: 3px solid {theme::DEEP_NAVY}; padding: 2rem; margin-bottom: 2rem; background: {theme::WARM_BEIGE};",
+                            style: "border: 3px solid {theme::DEEP_NAVY}; padding: 2rem; margin-bottom: 2rem; background: {theme::DEEP_NAVY};",
                             h3 {
-                                style: "font-size: 1.2rem; font-weight: 700; color: {theme::DEEP_NAVY}; text-transform: uppercase; margin-bottom: 1rem;",
+                                style: "font-size: 1.2rem; font-weight: 700; color: {theme::DARK_BROWN}; text-transform: uppercase; margin-bottom: 1rem;",
                                 "ABSTRACT"
                             }
                             p {
-                                style: "line-height: 1.8; color: {theme::DEEP_NAVY};",
+                                style: "line-height: 1.8; color: {theme::MINT_WHITE};",
                                 "{paper.r#abstract}"
                             }
                         }
-                        // PDF Viewer (iframe for now, WASM viewer later)
+                        // Buttons
                         div {
-                            style: "border: 3px solid {theme::DEEP_NAVY};",
-                            iframe {
-                                src: "{pdf_url}",
-                                style: "width: 100%; height: 80vh; border: none;",
-                                title: "{paper.title}",
+                            style: "display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 2rem;",
+                            if has_url {
+                                a {
+                                    href: "{paper.url}",
+                                    target: "_blank",
+                                    rel: "noopener noreferrer",
+                                    style: "display: inline-block; font-family: {theme::FONT_MONO}; font-size: 1rem; font-weight: 700; color: {theme::MINT_WHITE}; background: {theme::DEEP_NAVY}; border: 3px solid {theme::DEEP_NAVY}; padding: 0.8rem 1.5rem; text-transform: uppercase;",
+                                    "VIEW ON JOURNAL →"
+                                }
+                            }
+                        }
+                        // PDF Viewer
+                        if has_pdf {
+                            div {
+                                style: "border: 3px solid {theme::DEEP_NAVY};",
+                                object {
+                                    data: "{pdf_url}",
+                                    r#type: "application/pdf",
+                                    style: "width: 100%; height: 80vh;",
+                                    p {
+                                        "Unable to display PDF. "
+                                        a {
+                                            href: "{pdf_url}",
+                                            target: "_blank",
+                                            "Download PDF"
+                                        }
+                                    }
+                                }
                             }
                         }
                     }

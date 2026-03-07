@@ -1,9 +1,9 @@
 // Color palette
-pub const MINT_WHITE: &str = "#F1FFFA";
-pub const MUTED_TEAL: &str = "#93B7BE";
-pub const WARM_BEIGE: &str = "#D5C7BC";
-pub const DEEP_NAVY: &str = "#273B76";
-pub const DARK_BROWN: &str = "#4C2E05";
+pub const MINT_WHITE: &str = "#E5E5E5";
+pub const MUTED_TEAL: &str = "#568EA3";
+pub const WARM_BEIGE: &str = "#591F0A";
+pub const DEEP_NAVY: &str = "#02182B";
+pub const DARK_BROWN: &str = "#D65108";
 
 // Typography
 pub const FONT_HEADING: &str = "'Space Grotesk', sans-serif";

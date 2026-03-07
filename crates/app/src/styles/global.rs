@@ -43,12 +43,11 @@ a:hover {{
     transform: translateY(0);
 }}
 
-@media (hover: hover) {{
-    * {{ cursor: none !important; }}
-}}
+.custom-cursor {{ display: none; }}
 
-@media (hover: none) {{
-    .custom-cursor {{ display: none; }}
+/* Timeline: desktop/mobile toggle */
+.timeline-mobile {{
+    display: none;
 }}
 
 /* Tablet */
@@ -59,14 +58,51 @@ a:hover {{
 
 /* Mobile */
 @media (max-width: 768px) {{
-    h1 {{ font-size: 2.5rem !important; }}
-    h2 {{ font-size: 2rem !important; }}
-
-    /* Stack navbar vertically */
+    /* Navbar: compact single row */
+    nav {{
+        padding: 0.5rem 0.8rem !important;
+        flex-direction: row !important;
+        flex-wrap: nowrap !important;
+        align-items: center !important;
+    }}
+    nav > a span {{
+        font-size: 0.85rem !important;
+    }}
     .nav-links {{
-        flex-direction: column;
-        gap: 0.5rem !important;
-        align-items: flex-end;
+        flex-direction: row !important;
+        gap: 0.6rem !important;
+    }}
+    .nav-links a span {{
+        font-size: 0.7rem !important;
+    }}
+
+    /* Hero text */
+    #hero-name {{
+        font-size: 3.5rem !important;
+    }}
+    #hero-subtitle {{
+        font-size: 1rem !important;
+    }}
+
+    /* About content */
+    #about-content {{
+        padding: 3.5rem 1rem 6rem 1rem !important;
+    }}
+    #about-heading {{
+        font-size: 2.5rem !important;
+    }}
+    #about-narrative {{
+        font-size: 1rem !important;
+        margin-bottom: 1.5rem !important;
+    }}
+    .about-fact-value {{
+        font-size: 1.3rem !important;
+    }}
+    .about-fact-label {{
+        font-size: 0.75rem !important;
+    }}
+    .about-fact-card {{
+        padding: 1rem !important;
     }}
 
     /* Reduce section padding */
@@ -74,32 +110,58 @@ a:hover {{
         padding: 3rem 1rem !important;
     }}
 
-    /* Skills canvas smaller */
+    /* Skills */
+    #skills {{
+        min-height: auto !important;
+    }}
     #skills-canvas {{
-        height: 400px !important;
+        height: 350px !important;
     }}
 
-    /* Timeline: disable scroll hijack on mobile */
-    #timeline-scroll-container {{
-        height: auto !important;
+    /* Timeline: vertical on mobile */
+    .timeline-desktop {{
+        display: none !important;
+    }}
+    .timeline-mobile {{
+        display: block !important;
     }}
 
-    #timeline-track {{
-        flex-direction: column !important;
-        transform: none !important;
-        padding: 2rem 1rem !important;
+    /* Contact links */
+    #contact a {{
+        font-size: 1rem !important;
+        padding: 0.7rem 1.2rem !important;
+    }}
+    #contact > div > div {{
         gap: 1.5rem !important;
-    }}
-
-    #timeline-track > div {{
-        min-width: auto !important;
-        max-width: 100% !important;
     }}
 }}
 
 /* Small mobile */
 @media (max-width: 480px) {{
-    h1 {{ font-size: 2rem !important; }}
+    #hero-name {{
+        font-size: 2.5rem !important;
+    }}
+    #hero-subtitle {{
+        font-size: 0.85rem !important;
+    }}
+    #about-heading {{
+        font-size: 2rem !important;
+    }}
+    #about-narrative {{
+        font-size: 0.9rem !important;
+    }}
+    .about-fact-value {{
+        font-size: 1.1rem !important;
+    }}
+    .nav-links {{
+        gap: 0.4rem !important;
+    }}
+    .nav-links a span {{
+        font-size: 0.6rem !important;
+    }}
+    nav > a span {{
+        font-size: 0.75rem !important;
+    }}
 }}
 "#,
         mint_white = theme::MINT_WHITE,

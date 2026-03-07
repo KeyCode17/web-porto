@@ -53,7 +53,6 @@ fn Layout() -> Element {
         components::cursor::CustomCursor {}
         components::navbar::Navbar {}
         div {
-            style: "padding-top: 60px;",
             Outlet::<Route> {}
         }
     }

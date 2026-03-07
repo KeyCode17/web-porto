@@ -43,6 +43,12 @@ pub struct Experience {
     pub summary: String,
     pub details: String,
     pub tech: Vec<String>,
+    #[serde(default = "default_kind")]
+    pub kind: String,
+}
+
+fn default_kind() -> String {
+    "work".to_string()
 }
 
 #[derive(Debug, Deserialize, Clone)]
@@ -52,7 +58,10 @@ pub struct Paper {
     pub authors: Vec<String>,
     pub venue: String,
     pub r#abstract: String,
+    #[serde(default)]
     pub pdf_file: String,
+    #[serde(default)]
+    pub url: String,
     pub tags: Vec<String>,
 }
 
