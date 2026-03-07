@@ -277,6 +277,73 @@ a:hover {{
     text-decoration: none;
 }}
 
+/* Mobile card stack - hidden on desktop */
+.poker-stack {{
+    display: none;
+}}
+
+.poker-stack-cards {{
+    position: relative;
+    width: 220px;
+    height: 320px;
+    margin: 0 auto;
+}}
+
+.poker-stack-card {{
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border: 3px solid {mint_white};
+    border-radius: 10px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 1.5rem;
+    cursor: pointer;
+    transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1),
+                opacity 0.25s ease,
+                scale 0.25s ease;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+}}
+
+.poker-stack-title {{
+    font-family: {font_mono};
+    font-size: 1.1rem;
+    font-weight: 700;
+    text-align: center;
+    color: {mint_white};
+    text-transform: uppercase;
+    line-height: 1.3;
+}}
+
+.poker-stack-nav {{
+    font-family: {font_mono};
+    font-size: 1.5rem;
+    color: {mint_white};
+    background: none;
+    border: 2px solid {mint_white};
+    width: 3rem;
+    height: 3rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    border-radius: 4px;
+    transition: background 0.2s;
+}}
+
+.poker-stack-nav:hover {{
+    background: rgba(229, 229, 229, 0.1);
+}}
+
+.poker-stack-nav:disabled {{
+    opacity: 0.3;
+    cursor: default;
+}}
+
 .poker-close-btn {{
     position: absolute;
     top: 1rem;
@@ -322,6 +389,8 @@ a:hover {{
 /* Mobile */
 @media (max-width: 768px) {{
     /* Navbar: compact single row */
+    h1 {{ font-size: 2.8rem !important; }}
+
     nav {{
         padding: 0.5rem 0.8rem !important;
         flex-direction: row !important;
@@ -398,58 +467,104 @@ a:hover {{
         gap: 1.5rem !important;
     }}
 
-    /* Poker cards mobile */
+    .poker-deco {{
+        font-size: 4rem !important;
+    }}
+
+    /* Poker: hide fan, show stack on mobile */
     .poker-container {{
-        height: 60vh;
+        display: none !important;
+    }}
+    .poker-stack {{
+        display: block !important;
+        position: relative;
+        z-index: 1;
     }}
     .poker-card {{
-        width: 100px;
-        height: 150px;
-        padding: 0.6rem;
-        border-width: 3px;
+        width: 80px;
+        height: 120px;
+        padding: 0.4rem;
+        border-width: 2px;
+        bottom: -10%;
     }}
     .poker-card-suit {{
-        font-size: 1.5rem;
-        top: 0.3rem;
-        left: 0.4rem;
+        font-size: 1.2rem;
+        top: 0.2rem;
+        left: 0.3rem;
     }}
     .poker-card-suit-bottom {{
-        font-size: 1.5rem;
-        bottom: 0.3rem;
-        right: 0.4rem;
+        font-size: 1.2rem;
+        bottom: 0.2rem;
+        right: 0.3rem;
     }}
     .poker-card-title {{
-        font-size: 0.55rem;
+        font-size: 0.45rem;
+        max-width: 95%;
     }}
     .poker-card-category {{
-        font-size: 0.45rem;
-        bottom: 1.5rem;
+        font-size: 0.4rem;
+        bottom: 1.2rem;
+    }}
+    .poker-card.hovered {{
+        transform: rotate(var(--final-rot)) rotateX(0deg) translateY(-60px) scale(1.1);
+    }}
+    .poker-card.phase-dealt:active,
+    .poker-card.phase-ready:active {{
+        transform: rotate(var(--final-rot)) rotateX(0deg) translateY(-30px) scale(1.08);
     }}
     .poker-card-expanded {{
         flex-direction: column;
-        top: 2vh;
-        left: 2vw;
-        width: 96vw;
-        height: 92vh;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        border-radius: 0;
+        border: none;
     }}
     .poker-expanded-left {{
         width: 100%;
-        height: 30%;
-        padding: 1.5rem;
+        height: auto;
+        padding: 1.2rem 1.2rem 0.8rem;
+        flex-shrink: 0;
     }}
     .poker-expanded-right {{
         width: 100%;
-        height: 70%;
-        padding: 1.5rem;
+        flex: 1;
+        padding: 1.2rem;
+        gap: 0.8rem;
+        justify-content: flex-start;
     }}
     .poker-expanded-title {{
-        font-size: 1.5rem;
+        font-size: 1rem;
     }}
     .poker-expanded-suit {{
-        font-size: 5rem;
+        font-size: 4rem;
     }}
-    .poker-card.phase-dealt:active {{
-        transform: rotate(var(--final-rot)) rotateX(5deg) translateY(-15px) scale(1.05);
+    .poker-expanded-desc {{
+        font-size: 0.95rem;
+        line-height: 1.6;
+    }}
+    .poker-expanded-tag {{
+        font-size: 0.65rem;
+        padding: 0.2rem 0.4rem;
+    }}
+    .poker-expanded-link {{
+        font-size: 0.8rem;
+        padding: 0.6rem 1rem;
+    }}
+    .poker-expanded-links {{
+        flex-wrap: wrap;
+        margin-top: 0;
+    }}
+    .poker-close-btn {{
+        top: 0.5rem;
+        right: 0.5rem;
+        width: 2.5rem;
+        height: 2.5rem;
+        font-size: 1.2rem;
+        color: {mint_white} !important;
+        border-color: {mint_white} !important;
+        z-index: 110;
     }}
 }}
 

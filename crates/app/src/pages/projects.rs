@@ -40,6 +40,8 @@ pub fn Projects() -> Element {
     let mut phase = use_signal(|| 0u8);
     let mut expanded: Signal<Option<usize>> = use_signal(|| None);
     let mut hovered: Signal<Option<usize>> = use_signal(|| None);
+    let total = projects.len();
+    let mut mobile_idx = use_signal(move || total - 1);
 
     use_effect(move || {
         let window = web_sys::window().unwrap();
@@ -101,14 +103,20 @@ pub fn Projects() -> Element {
     let n = projects.len();
 
     rsx! {
-        div { style: "padding: 4rem 2rem 1rem; height: 100vh; overflow: hidden;",
+        div { style: "padding: 4rem 2rem 1rem; height: 100vh; overflow: hidden; background: {theme::DEEP_NAVY}; position: relative;",
+            // Decorative corner suits (desktop only)
+            span { class: "poker-deco", style: "position: absolute; top: 5rem; left: 3rem; font-size: 8rem; opacity: 0.04; color: {theme::MINT_WHITE}; pointer-events: none; user-select: none;", "\u{2660}" }
+            span { class: "poker-deco", style: "position: absolute; top: 4rem; right: 4rem; font-size: 6rem; opacity: 0.04; color: {theme::MINT_WHITE}; pointer-events: none; user-select: none;", "\u{2665}" }
+            span { class: "poker-deco", style: "position: absolute; bottom: 8rem; left: 8rem; font-size: 10rem; opacity: 0.03; color: {theme::MINT_WHITE}; pointer-events: none; user-select: none;", "\u{2666}" }
+            span { class: "poker-deco", style: "position: absolute; bottom: 6rem; right: 6rem; font-size: 7rem; opacity: 0.04; color: {theme::MINT_WHITE}; pointer-events: none; user-select: none;", "\u{2663}" }
+            span { class: "poker-deco", style: "position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 20rem; opacity: 0.02; color: {theme::MINT_WHITE}; pointer-events: none; user-select: none;", "\u{2660}" }
             h1 {
-                style: "font-size: 6rem; font-weight: 700; color: {theme::DEEP_NAVY}; text-transform: uppercase; text-align: center; margin-bottom: 0.5rem; font-family: {theme::FONT_HEADING};",
+                style: "font-size: 6rem; font-weight: 700; color: {theme::MINT_WHITE}; text-transform: uppercase; text-align: center; margin-bottom: 0.5rem; font-family: {theme::FONT_HEADING}; position: relative; z-index: 1;",
                 "PROJECTS"
             }
             p {
-                style: "font-family: {theme::FONT_MONO}; font-size: 0.9rem; color: {theme::MUTED_TEAL}; text-align: center; margin-bottom: 1rem;",
-                "CLICK A CARD TO REVEAL"
+                style: "font-family: {theme::FONT_MONO}; font-size: 0.9rem; color: {theme::MUTED_TEAL}; text-align: center; margin-bottom: 1rem; position: relative; z-index: 1;",
+                "PICK A CARD"
             }
             div { class: "poker-container",
                 for (i, project) in projects.iter().enumerate() {
@@ -162,6 +170,76 @@ pub fn Projects() -> Element {
                                 span { class: "poker-card-title", "{title}" }
                                 span { class: "poker-card-category", "{cat_label}" }
                                 span { class: "poker-card-suit-bottom", "{suit_bottom}" }
+                            }
+                        }
+                    }
+                }
+            }
+
+            // Mobile: swipeable card stack
+            div { class: "poker-stack",
+                {
+                    let current_mobile = *mobile_idx.read();
+                    let total = projects.len();
+                    rsx! {
+                        // Counter
+                        p {
+                            style: "font-family: {theme::FONT_MONO}; font-size: 0.8rem; color: {theme::MUTED_TEAL}; text-align: center; margin-bottom: 0.8rem;",
+                            "{current_mobile + 1} / {total}"
+                        }
+                        div { class: "poker-stack-cards",
+                            for (i, project) in projects.iter().enumerate() {
+                                {
+                                    let (suit, suit_color, bg_color) = card_deal(i);
+                                    let cat_label = category_label(&project.category);
+                                    let title = project.title.clone();
+                                    let slug = project.slug.clone();
+                                    let offset = (i as i32) - (current_mobile as i32);
+                                    let tx = offset as f64 * 75.0;
+                                    let abs_offset = offset.unsigned_abs() as f64;
+                                    let scale = if abs_offset == 0.0 { 1.0 } else if abs_offset == 1.0 { 0.9 } else { 0.85 };
+                                    let opacity = if abs_offset == 0.0 { 1.0 } else if abs_offset == 1.0 { 0.5 } else { 0.0 };
+                                    let z = if offset == 0 { 10 } else if abs_offset == 1.0 { 5 } else { 0 };
+                                    let pe = if offset == 0 { "auto" } else { "none" };
+                                    let card_style = format!(
+                                        "background: {}; --suit-color: {}; transform: translateX({}%) scale({}); z-index: {}; opacity: {}; pointer-events: {};",
+                                        bg_color, suit_color, tx, scale, z, opacity, pe
+                                    );
+
+                                    rsx! {
+                                        div {
+                                            class: "poker-stack-card",
+                                            style: "{card_style}",
+                                            key: "m-{slug}",
+                                            onclick: move |_| { expanded.set(Some(i)); },
+                                            span { class: "poker-card-suit", "{suit}" }
+                                            span { class: "poker-stack-title", "{title}" }
+                                            span { class: "poker-card-category", style: "position: static; margin-top: 0.5rem;", "{cat_label}" }
+                                            span { class: "poker-card-suit-bottom", "{suit}" }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        // Navigation arrows
+                        div { style: "display: flex; justify-content: center; gap: 2rem; margin-top: 1rem;",
+                            button {
+                                class: "poker-stack-nav",
+                                disabled: current_mobile == 0,
+                                onclick: move |_| {
+                                    let cur = *mobile_idx.read();
+                                    if cur > 0 { mobile_idx.set(cur - 1); }
+                                },
+                                "\u{2190}"
+                            }
+                            button {
+                                class: "poker-stack-nav",
+                                disabled: current_mobile >= total - 1,
+                                onclick: move |_| {
+                                    let cur = *mobile_idx.read();
+                                    if cur < total - 1 { mobile_idx.set(cur + 1); }
+                                },
+                                "\u{2192}"
                             }
                         }
                     }
