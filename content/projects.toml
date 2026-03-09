@@ -1,10 +1,98 @@
 [[project]]
-slug = "sample-project"
-title = "Sample AI Project"
-short_description = "An example project placeholder"
-long_description = "This is a detailed description of the project..."
-tech_stack = ["Rust", "Python", "PyTorch"]
+slug = "agentic-rag-crm"
+title = "Agentic RAG for SaaS CRM"
+short_description = "LLM-powered system reducing customer service handling time by ~40%"
+long_description = "Engineered an Agentic RAG system for a SaaS Customer Service CRM at Perfect10 AI. The system leverages LLMs to assist agents with instant answer retrieval from knowledge bases, reducing Average Handling Time (AHT) by approximately 40%. Led a squad of 3 engineers, conducting code reviews and guiding architectural decisions to ensure scalability."
+tech_stack = ["Python", "LLMs", "RAG", "SaaS"]
 category = "ai"
-repo_url = "https://github.com/yourusername/sample"
+repo_url = ""
+demo_url = ""
+images = []
+
+[[project]]
+slug = "ai-code-reviewer"
+title = "AI Code Reviewer"
+short_description = "Reduced merge request times by 45.1% across 1,491 cases"
+long_description = "Built an AI Reviewer at DOT Indonesia that reduced merge request times by 45.1% (from 8.7 to 4.8 hours) across 1,491 cases, while maintaining high-quality feedback with only 20% false positives. Also produced an AI Query Analyzer that detects slow ORM queries and suggests optimizations, reducing query runtimes by around 35%."
+tech_stack = ["Python", "LLMs", "TypeScript", "Git", "SQL"]
+category = "ai"
+repo_url = ""
+demo_url = ""
+images = []
+
+[[project]]
+slug = "genai-content-creation"
+title = "GenAI Content Creation Tool"
+short_description = "Internal AI tool saving marketing team 20+ hours/week"
+long_description = "Engineered an internal Generative AI solution at DOT Indonesia for content creation, saving the marketing team 20+ hours of manual writing work per week. Streamlined content workflows through intelligent automation."
+tech_stack = ["Python", "LLMs", "Generative AI"]
+category = "ai"
+repo_url = ""
+demo_url = ""
+images = []
+
+[[project]]
+slug = "school-scope-classification"
+title = "School Scope Classification with DNN"
+short_description = "Deep Neural Networks classifying school scope from living environments"
+long_description = "Authored an innovative machine learning project using Deep Neural Networks to classify school scope based on students' living environments. Implemented advanced feature selection techniques using Spearman's Rank Correlation Coefficient with K-fold cross-validation on 677 student records. Best model achieved 83.08% accuracy. Published in JCTA journal."
+tech_stack = ["Python", "TensorFlow", "Deep Learning", "Streamlit"]
+category = "ai"
+repo_url = "https://github.com/KeyCode17/school-scope-classification"
+demo_url = "https://school-scope-classification.streamlit.app"
+images = []
+
+[[project]]
+slug = "sentiment-analysis-scraper"
+title = "Deep Learning Sentiment Analysis on Social Problems"
+short_description = "CNN-based multi-dimensional sentiment analysis on social issues"
+long_description = "Uses CNN for multi-dimensional sentiment analysis (Sentiment, Tone, Object) on social issues including poverty, health, education, violence, and environment. Automatically collects articles from various news and media platforms to analyze public sentiment and provide AI-driven solutions. Published in IJACSA journal."
+tech_stack = ["Python", "NLP", "Deep Learning", "CNN", "Web Scraping"]
+category = "ai"
+repo_url = ""
+demo_url = ""
+images = []
+
+[[project]]
+slug = "data-sayens"
+title = "Random Forest Classification Demo"
+short_description = "Interactive ML platform for real-time data classification"
+long_description = "Designed a project that demonstrates machine learning concepts, focusing on classifying data into meaningful categories using Random Forest algorithm. Provided an interactive online platform where users can analyze data and see predictions in real-time, making machine learning accessible to non-experts."
+tech_stack = ["Python", "Scikit-learn", "Streamlit", "Random Forest"]
+category = "ai"
+repo_url = "https://github.com/KeyCode17/Data_Sayens"
+demo_url = "https://datasayens-dsw2023s-batch-upload.streamlit.app/"
+images = []
+
+[[project]]
+slug = "ecommerce-data-analysis"
+title = "E-Commerce Data Analysis Dashboard"
+short_description = "Streamlit dashboard analyzing ~10,000 rows of e-commerce data"
+long_description = "Built a data analysis project with a Streamlit dashboard for exploring ~10,000 rows of e-commerce data. Applied data visualization, data wrangling, data cleaning, and exploratory data analysis techniques to derive meaningful insights."
+tech_stack = ["Python", "Pandas", "Streamlit", "Data Visualization"]
+category = "data"
+repo_url = "https://github.com/KeyCode17/Dicoding-Belajar_Analisis_Data_dengan_Python"
+demo_url = ""
+images = []
+
+[[project]]
+slug = "dapoer-mama-jo"
+title = "Website Dapoer Mama Jo"
+short_description = "Restaurant website for menu display and online ordering"
+long_description = "Developed a website for Dapoer Mama Jo to display menus and enable online ordering. Collaborated with a team of 6 to design and implement frontend features, working closely with the backend team for smooth database integration."
+tech_stack = ["JavaScript", "PHP", "Laravel", "MySQL", "CSS", "HTML"]
+category = "web"
+repo_url = "https://github.com/KeyCode17/DapoerMamaJo"
+demo_url = ""
+images = []
+
+[[project]]
+slug = "web-porto"
+title = "This Portfolio (Rust + WASM)"
+short_description = "Brutalist portfolio built entirely in Rust, compiled to WebAssembly"
+long_description = "A brutalist portfolio website built entirely in Rust using Dioxus, compiled to WebAssembly. Features include Canvas2D particle animations, a force-directed skills graph, horizontal scroll-hijack timeline, and an in-browser AI chatbot. Deployed on NixOS with a fully declarative Nix flake."
+tech_stack = ["Rust", "WASM", "Dioxus", "Nix", "Canvas2D"]
+category = "systems"
+repo_url = "https://github.com/KeyCode17/web-porto"
 demo_url = ""
 images = []

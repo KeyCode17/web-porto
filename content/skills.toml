@@ -1,20 +1,104 @@
 [[skill]]
-name = "Rust"
-category = "language"
-proficiency = 3
-connections = ["WASM", "Nix"]
-
-[[skill]]
 name = "Python"
 category = "language"
 proficiency = 5
-connections = ["PyTorch", "LLMs"]
+connections = ["PyTorch", "TensorFlow", "LLMs", "NumPy", "Pandas"]
+
+[[skill]]
+name = "Rust"
+category = "language"
+proficiency = 3
+connections = ["WASM", "Dioxus", "Nix"]
+
+[[skill]]
+name = "TypeScript"
+category = "language"
+proficiency = 4
+connections = ["Node.js"]
+
+[[skill]]
+name = "SQL"
+category = "language"
+proficiency = 4
+connections = ["PySpark", "Hadoop"]
 
 [[skill]]
 name = "PyTorch"
 category = "ai"
+proficiency = 4
+connections = ["Python", "LLMs", "Deep Learning"]
+
+[[skill]]
+name = "TensorFlow"
+category = "ai"
 proficiency = 5
-connections = ["Python", "LLMs"]
+connections = ["Python", "Deep Learning"]
+
+[[skill]]
+name = "LLMs"
+category = "ai"
+proficiency = 5
+connections = ["Python", "RAG", "PyTorch"]
+
+[[skill]]
+name = "RAG"
+category = "ai"
+proficiency = 5
+connections = ["LLMs", "Python"]
+
+[[skill]]
+name = "Deep Learning"
+category = "ai"
+proficiency = 4
+connections = ["PyTorch", "TensorFlow", "Python"]
+
+[[skill]]
+name = "Node.js"
+category = "framework"
+proficiency = 3
+connections = ["TypeScript"]
+
+[[skill]]
+name = "NumPy"
+category = "tool"
+proficiency = 5
+connections = ["Python", "Pandas"]
+
+[[skill]]
+name = "Pandas"
+category = "tool"
+proficiency = 5
+connections = ["Python", "NumPy"]
+
+[[skill]]
+name = "PySpark"
+category = "tool"
+proficiency = 3
+connections = ["Python", "Hadoop", "SQL"]
+
+[[skill]]
+name = "Hadoop"
+category = "infra"
+proficiency = 3
+connections = ["PySpark", "SQL"]
+
+[[skill]]
+name = "Linux"
+category = "infra"
+proficiency = 4
+connections = ["Nix", "NixOS"]
+
+[[skill]]
+name = "Nix"
+category = "infra"
+proficiency = 3
+connections = ["Rust", "NixOS", "Linux"]
+
+[[skill]]
+name = "NixOS"
+category = "infra"
+proficiency = 3
+connections = ["Nix", "Linux"]
 
 [[skill]]
 name = "WASM"
@@ -23,31 +107,13 @@ proficiency = 3
 connections = ["Rust", "Dioxus"]
 
 [[skill]]
-name = "Nix"
-category = "infra"
-proficiency = 4
-connections = ["Rust", "NixOS"]
-
-[[skill]]
-name = "LLMs"
-category = "ai"
-proficiency = 5
-connections = ["Python", "PyTorch", "Fine-tuning"]
-
-[[skill]]
 name = "Dioxus"
 category = "framework"
 proficiency = 2
 connections = ["Rust", "WASM"]
 
 [[skill]]
-name = "NixOS"
-category = "infra"
-proficiency = 4
-connections = ["Nix"]
-
-[[skill]]
-name = "Fine-tuning"
-category = "ai"
-proficiency = 4
-connections = ["LLMs", "PyTorch"]
+name = "Tableau"
+category = "tool"
+proficiency = 3
+connections = ["SQL", "Python"]

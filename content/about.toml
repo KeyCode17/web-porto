@@ -1,14 +1,16 @@
 [about]
-name = "Your Name"
+name = "Daffa Karyudi"
 title = "AI Software Engineer"
-narrative = "I build intelligent systems at the intersection of AI and systems engineering."
+narrative = "Information Systems graduate, specializing in Generative AI and SaaS Optimization. Currently leading a squad of 3 engineers at Perfect10 AI to deploy an Agentic RAG system that reduced Customer Service handling time by ~40%. Proven track record of building developer tools that increased code review efficiency by 45.1%. Dedicated mentor to 372 students in Python and ML at Bangkit Academy and Harisenin."
 facts = [
-  { label = "Focus", value = "AI/ML + Systems" },
-  { label = "Stack", value = "Rust, Python, Nix" },
-  { label = "Based in", value = "Earth" },
+  { label = "Focus", value = "Agentic AI & SaaS" },
+  { label = "Stack", value = "Python, Rust, TypeScript" },
+  { label = "Based in", value = "Malang, Indonesia" },
+  { label = "GPA", value = "3.92 / 4.0" },
 ]
 social_links = [
-  { platform = "github", url = "https://github.com/yourusername" },
-  { platform = "linkedin", url = "https://linkedin.com/in/yourusername" },
-  { platform = "email", url = "mailto:you@example.com" },
+  { platform = "github", url = "https://github.com/KeyCode17" },
+  { platform = "linkedin", url = "https://linkedin.com/in/daffakaryudi" },
+  { platform = "email", url = "mailto:m.daffa.karyudi@gmail.com" },
+  { platform = "scholar", url = "https://scholar.google.com/citations?user=H9aerC0AAAAJ" },
 ]

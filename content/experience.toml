@@ -1,8 +1,120 @@
 [[experience]]
-company = "Company Name"
+company = "Perfect10 AI"
 role = "AI Software Engineer"
-start_date = "2024-01"
+start_date = "2025-10"
 end_date = ""
-summary = "Building AI systems"
-details = "Detailed description of work..."
-tech = ["Python", "Rust", "LLMs"]
+summary = "Leading a squad of 3 engineers building Agentic RAG for SaaS CRM"
+details = "Architected a reusable code boilerplate that reduced project initialization time by 40%, accelerating the development lifecycle for the entire engineering team. Provide technical leadership and mentorship for a squad of 3 engineers, conducting code reviews and guiding architectural decisions to ensure scalability. Architected a high density deployment strategy, successfully running database, object storage, and application layers on a single low spec VPS while maintaining uptime for around 1,000 users. Engineered an Agentic RAG system for a SaaS Customer Service CRM, leveraging LLMs to assist agents with instant answer retrieval, reducing Average Handling Time (AHT) by ~40%."
+tech = ["Python", "TypeScript", "Rust", "Docker", "Next.js", "NestJS", "WebSocket", "Linux Server", "Databases"]
+
+[[experience]]
+company = "DOT Indonesia"
+role = "AI Engineer (Contract)"
+start_date = "2026-01"
+end_date = ""
+summary = "Engineered internal GenAI solution saving 20+ hours/week"
+details = "Engineered an internal Generative AI solution for content creation, saving the marketing team 20+ hours of manual writing work per week."
+tech = ["Python", "LLMs", "Generative AI"]
+
+[[experience]]
+company = "DOT Indonesia"
+role = "AI Engineer (Internship)"
+start_date = "2025-06"
+end_date = "2026-01"
+summary = "Built AI Reviewer that reduced merge request times by 45.1%"
+details = "Built an AI Reviewer that cut merge request duration from 8.7 to 4.8 hours, making teams 45.1% faster across 1,491 cases. This AI Reviewer also delivers reliable, comprehensive code feedback with a false positive rate of only about 20%, balancing speed with review quality. Developed an AI Query Analyzer that detects slow ORM queries and suggests optimizations, reducing query runtimes by around 35% to significantly improve system efficiency."
+tech = ["Prompt Engineering", "TypeScript", "Machine Learning", "LLMs"]
+
+[[experience]]
+company = "Harisenin.com"
+role = "Data Analyst Tutor"
+start_date = "2025-05"
+end_date = ""
+summary = "Tutoring Python and Data Analytics to 372 students (4.8+ rating)"
+details = "Delivered interactive and clear Python and Data Analytics tutoring sessions, consistently receiving high ratings (average 4.8+ out of 5) for teaching quality and engagement. Designed and facilitated live classes featuring practical use of NumPy and Pandas, resulting in over 90% student participation and positive feedback from 372 students. Adapted lesson pace and materials based on student feedback, ensuring clarity and understanding while managing dense content within limited session time."
+tech = ["Python", "NumPy", "Pandas", "Data Analytics"]
+
+[[experience]]
+company = "Bangkit Academy led by Google & Coding Camp powered by DBS Foundation"
+role = "Machine Learning Mentor"
+start_date = "2024-09"
+end_date = "2025-04"
+summary = "Mentored 50 students across two cohorts, improving ML project completion rate by 91%"
+details = "Mentored 50 students across two cohorts (Bangkit Academy & Coding Camp powered by DBS Foundation). Improved ML project completion rate by 91%, increased average project grades by 16%, and helped 5 students rank among the top performers out of 4,128 participants. Guided students in mastering advanced machine learning concepts, providing technical guidance on end-to-end model development including data preprocessing, model evaluation, and deployment."
+tech = ["TensorFlow", "Machine Learning", "Google Analytics"]
+
+[[experience]]
+company = "Bangkit Academy led by Google, Tokopedia, Gojek, & Traveloka"
+role = "Machine Learning Cohort"
+start_date = "2023-08"
+end_date = "2024-01"
+summary = "Completed Machine Learning apprenticeship program"
+details = "Completed an intensive Machine Learning apprenticeship covering data analysis, TensorFlow, and end-to-end ML workflows. Gained hands-on experience with Google Analytics, Python, and collaborative ML projects."
+tech = ["Python", "TensorFlow", "Data Analysis", "Machine Learning"]
+
+[[experience]]
+company = "DPUPRPKP Kota Malang"
+role = "Data Analyst (Internship)"
+start_date = "2024-04"
+end_date = "2024-08"
+summary = "Managed 80M+ wastewater records, increasing reporting accuracy by 22%"
+details = "Managed and validated over 80 million wastewater treatment (IPAL) records in the Si-Paldi system, increasing reporting accuracy by 22%. Supported the design and implementation of ETL pipelines, contributing to a 40% increase in data processing efficiency for growing datasets. Contributed to overall system performance improvements, ensuring scalable solutions for large datasets."
+tech = ["Python", "MySQL", "Hadoop", "MapReduce", "Data Analytics"]
+
+[[experience]]
+company = "Dapoer Mama Jo"
+role = "Frontend Web Developer"
+start_date = "2019-07"
+end_date = "2020-10"
+summary = "Developed company website from scratch with a team of 6"
+details = "Developed the company's website from scratch to display the menu. Collaborated with a team of 6 to design and implement the website's frontend features, ensuring a seamless user experience. Worked closely with the backend team to ensure smooth integration with the database."
+tech = ["JavaScript", "CSS", "HTML", "PHP", "Laravel", "MySQL"]
+
+[[experience]]
+company = "Dapoer Mama Jo"
+role = "Warehouse Operations Associate (PPIC)"
+start_date = "2017-07"
+end_date = "2019-07"
+summary = "Maintained inventory systems and optimized stock operations"
+details = "Maintained accurate stock levels through regular stock opname, ensuring system documentation of inventory processes for tracking and optimization. Used Excel to analyze stock movement, detect discrepancies, and optimize inventory levels, supporting logistics planning and capacity planning for efficient resource allocation."
+tech = ["Excel", "Supply Chain Management", "Logistics"]
+
+[[experience]]
+company = "SMA Negeri 7 Malang"
+role = "Photography Teacher"
+start_date = "2019-08"
+end_date = "2020-01"
+summary = "Taught photography as honorary teacher after graduation"
+details = "Worked as Honorary Teacher after graduation from school, received an offer to work as Photography Teacher."
+tech = ["Photography", "Teaching"]
+
+# Education
+[[experience]]
+company = "Universitas Merdeka Malang"
+role = "Bachelor of Technology — Management Information Systems"
+start_date = "2021-09"
+end_date = "2025-02"
+summary = "BTech in Management Information Systems, GPA 3.92/4.0"
+details = "Bachelor of Technology in Management Information Systems with a GPA of 3.92/4.0. Active in Photography, Web Development Community, and Chess Club."
+tech = ["Python", "TensorFlow", "Statistics", "Data Analysis", "Computer Science", "Data Analytics", "Microsoft Excel"]
+kind = "education"
+
+[[experience]]
+company = "Bitlabs Academy"
+role = "Data Analytics for Business"
+start_date = "2024-09"
+end_date = "2024-12"
+summary = "Professional certification in Data Analytics for Business"
+details = "Completed a Data Analytics for Business program covering data management, communication, data analytics, and visualization using Microsoft Excel, Power BI, and Tableau."
+tech = ["Data Analytics", "Microsoft Excel", "Microsoft Power BI", "Tableau", "Visualization"]
+kind = "education"
+
+[[experience]]
+company = "SMA Negeri 7 Malang"
+role = "High School Diploma — Natural Sciences"
+start_date = "2016-06"
+end_date = "2019-07"
+summary = "High school education in Natural Sciences"
+details = "High School Diploma in Natural Sciences. Active in Adiwiyata environmental program and Photography extracurricular."
+tech = ["Natural Sciences", "Photography"]
+kind = "education"
