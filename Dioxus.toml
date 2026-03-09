@@ -3,7 +3,7 @@ name = "web-porto-app"
 default_platform = "web"
 
 [web.app]
-title = "web-porto"
+title = "Daffa Karyudi | AI Software Engineer"
 
 [web.watcher]
 watch_path = ["crates", "content", "public"]

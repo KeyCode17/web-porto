@@ -42,6 +42,7 @@ fn main() {
 
 fn app() -> Element {
     rsx! {
+        document::Link { rel: "icon", r#type: "image/svg+xml", href: "/favicon.svg" }
         Router::<Route> {}
     }
 }
