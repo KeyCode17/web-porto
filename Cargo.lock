@@ -3150,6 +3150,7 @@ dependencies = [
  "shared",
  "toml",
  "wasm-bindgen",
+ "wasm-bindgen-futures",
  "wasm-logger",
  "web-sys",
 ]

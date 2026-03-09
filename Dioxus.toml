@@ -6,7 +6,7 @@ default_platform = "web"
 title = "web-porto"
 
 [web.watcher]
-watch_path = ["crates", "content"]
+watch_path = ["crates", "content", "public"]
 
 [web.resource]
 style = []
