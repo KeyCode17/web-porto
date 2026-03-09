@@ -108,3 +108,17 @@ pub struct SkillsFile {
 pub struct ChatFile {
     pub chat: ChatConfig,
 }
+
+#[derive(Debug, Deserialize, Clone)]
+pub struct FaqEntry {
+    pub keywords: Vec<String>,
+    pub questions: Vec<String>,
+    pub answer: String,
+    #[serde(default)]
+    pub embedding: Vec<f32>,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct FaqFile {
+    pub faq: Vec<FaqEntry>,
+}

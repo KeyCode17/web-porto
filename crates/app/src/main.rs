@@ -3,6 +3,7 @@ use dioxus::prelude::*;
 mod canvas;
 mod components;
 mod data;
+mod faq_engine;
 mod pages;
 mod styles;
 

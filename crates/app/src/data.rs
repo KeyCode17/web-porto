@@ -6,6 +6,7 @@ const EXPERIENCE_TOML: &str = include_str!("../../../content/experience.toml");
 const PAPERS_TOML: &str = include_str!("../../../content/papers.toml");
 const SKILLS_TOML: &str = include_str!("../../../content/skills.toml");
 const CHAT_TOML: &str = include_str!("../../../content/chat_system_prompt.toml");
+const FAQ_TOML: &str = include_str!("../../../content/faq.toml");
 
 pub fn load_about() -> About {
     toml::from_str::<AboutFile>(ABOUT_TOML)
@@ -41,4 +42,10 @@ pub fn load_chat_config() -> ChatConfig {
     toml::from_str::<ChatFile>(CHAT_TOML)
         .expect("Invalid chat_system_prompt.toml")
         .chat
+}
+
+pub fn load_faq() -> Vec<FaqEntry> {
+    toml::from_str::<FaqFile>(FAQ_TOML)
+        .expect("Invalid faq.toml")
+        .faq
 }
