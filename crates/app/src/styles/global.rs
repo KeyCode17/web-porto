@@ -418,6 +418,10 @@ a:hover {{
     100% {{ opacity: 0; }}
 }}
 
+@keyframes chat-loading {{
+    0% {{ left: -40%; }}
+    100% {{ left: 100%; }}
+}}
 
 .board-doc {{
     position: absolute;
@@ -877,6 +881,9 @@ a:hover {{
     .board-title {{
         font-size: 2.8rem !important;
     }}
+    .board-subtitle {{
+        margin-bottom: 1.5rem !important;
+    }}
     .board-scene {{
         height: auto !important;
         min-height: auto !important;
@@ -891,6 +898,23 @@ a:hover {{
         transform: rotate(0deg) !important;
         top: auto !important;
         left: auto !important;
+        padding: 1.5rem 1.2rem 1.2rem !important;
+    }}
+    .board-doc-title {{
+        font-size: 1rem !important;
+        line-height: 1.3 !important;
+    }}
+    .board-venue {{
+        font-size: 0.6rem !important;
+    }}
+    .board-doc-author {{
+        font-size: 0.75rem !important;
+    }}
+    .board-doc-tag {{
+        font-size: 0.55rem !important;
+    }}
+    .board-stamp {{
+        font-size: 0.5rem !important;
     }}
     .board-expanded {{
         top: 0;
@@ -903,7 +927,26 @@ a:hover {{
         padding: 1.5rem 1.2rem;
     }}
     .board-expanded-title {{
-        font-size: 1.3rem;
+        font-size: 1.2rem !important;
+    }}
+    .board-expanded-venue {{
+        font-size: 0.65rem !important;
+    }}
+    .board-expanded-author {{
+        font-size: 0.8rem !important;
+    }}
+    .board-expanded-tag {{
+        font-size: 0.6rem !important;
+    }}
+    .board-expanded-abstract h3 {{
+        font-size: 0.85rem !important;
+    }}
+    .board-expanded-abstract p {{
+        font-size: 0.85rem !important;
+    }}
+    .board-expanded-link {{
+        font-size: 0.75rem !important;
+        padding: 0.6rem 1rem !important;
     }}
     .board-expanded-pdf {{
         display: none;
