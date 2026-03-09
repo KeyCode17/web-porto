@@ -7,3 +7,4 @@ result
 .direnv
 docs/
 python/
+.serena/
