@@ -7,11 +7,11 @@ A brutalist portfolio website built with Rust, WebAssembly, and Dioxus 0.7. Feat
 - **Rust + WebAssembly** — compiled to WASM via `wasm32-unknown-unknown`
 - **Dioxus 0.7** — reactive UI framework with client-side routing
 - **Transformers.js** — runs `all-MiniLM-L6-v2` (fp16) in-browser for semantic embeddings
-- **Nix Flakes** — reproducible dev environment
+- **Nix Flakes** — reproducible dev environment and NixOS deployment module
 
 ## Pages
 
-- **Home** — hero section with interactive elements
+- **Home** — hero section with interactive particle canvas
 - **Projects** — project showcase with detail views
 - **Papers** — research papers with detail views
 - **Chat** — AI chatbot powered by semantic search over FAQ data
@@ -30,37 +30,52 @@ The ~44MB model is loaded on-demand when the user clicks "Load AI Model".
 ## Project Structure
 
 ```
-├── crates/
-│   ├── app/          # Dioxus application (pages, styles, routing)
-│   └── shared/       # Shared data types (FaqEntry, etc.)
-├── content/          # TOML content files (about, projects, papers, FAQ, skills)
-├── public/
-│   ├── models/       # all-MiniLM-L6-v2 ONNX model files
-│   ├── papers/       # PDF papers
-│   └── photos/       # Photo assets
-├── python/           # Offline embedding computation script
-├── Dioxus.toml       # Dioxus build configuration
-├── flake.nix         # Nix dev environment
-└── index.html        # Entry point
+├── porto-app/           # Main Dioxus WASM application
+│   └── src/
+│       ├── canvas/      # Interactive canvas animations
+│       ├── components/  # Shared UI components (navbar, cursor)
+│       ├── pages/       # Route pages (home, projects, papers, chat)
+│       └── styles/      # Theme and global styles
+├── porto-shared/        # Shared data types
+│   └── src/
+├── content/             # TOML content files (about, projects, papers, FAQ)
+├── public/              # Static assets (photos, papers, models, favicon)
+├── nix/
+│   └── module.nix       # NixOS module (nginx, ACME, security headers)
+├── Cargo.toml           # Workspace root
+├── Dioxus.toml          # Dioxus build configuration
+└── flake.nix            # Nix devShell, packages, nixosModules.default
 ```
 
 ## Development
 
 ```bash
-# Enter nix dev shell
 nix develop
-
-# Start dev server
-dx serve --package web-porto-app
-
-# Pre-compute FAQ embeddings (only needed when FAQ content changes)
-cd python && pip install sentence-transformers toml && python compute_embeddings.py
+dx serve --package porto-app
 ```
 
 ## Production Build
 
 ```bash
-nix develop -c dx bundle --package web-porto-app
+nix develop -c dx bundle --package porto-app
 ```
 
-Output: `target/dx/web-porto-app/debug/web/public/` — serve this directory with any static file server.
+Output: `target/dx/porto-app/debug/web/public/`
+
+## NixOS Deployment
+
+This flake exports `nixosModules.default` for use in a NixOS configuration:
+
+```nix
+# In your flake inputs:
+web-porto.url = "github:KeyCode17/web-porto";
+
+# In your machine config:
+imports = [ web-porto.nixosModules.default ];
+
+services.web-porto = {
+  enable = true;
+  domain = "daffakaryudi.web.id";
+  acmeEmail = "m.daffa.karyudi@gmail.com";
+};
+```
