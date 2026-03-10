@@ -1,12 +1,11 @@
-use shared::*;
+use porto_shared::*;
 
-const ABOUT_TOML: &str = include_str!("../../../content/about.toml");
-const PROJECTS_TOML: &str = include_str!("../../../content/projects.toml");
-const EXPERIENCE_TOML: &str = include_str!("../../../content/experience.toml");
-const PAPERS_TOML: &str = include_str!("../../../content/papers.toml");
-const SKILLS_TOML: &str = include_str!("../../../content/skills.toml");
-const CHAT_TOML: &str = include_str!("../../../content/chat_system_prompt.toml");
-const FAQ_TOML: &str = include_str!("../../../content/faq.toml");
+const ABOUT_TOML: &str = include_str!("../../content/about.toml");
+const PROJECTS_TOML: &str = include_str!("../../content/projects.toml");
+const EXPERIENCE_TOML: &str = include_str!("../../content/experience.toml");
+const PAPERS_TOML: &str = include_str!("../../content/papers.toml");
+const SKILLS_TOML: &str = include_str!("../../content/skills.toml");
+const FAQ_TOML: &str = include_str!("../../content/faq.toml");
 
 pub fn load_about() -> About {
     toml::from_str::<AboutFile>(ABOUT_TOML)
@@ -36,12 +35,6 @@ pub fn load_skills() -> Vec<Skill> {
     toml::from_str::<SkillsFile>(SKILLS_TOML)
         .expect("Invalid skills.toml")
         .skill
-}
-
-pub fn load_chat_config() -> ChatConfig {
-    toml::from_str::<ChatFile>(CHAT_TOML)
-        .expect("Invalid chat_system_prompt.toml")
-        .chat
 }
 
 pub fn load_faq() -> Vec<FaqEntry> {

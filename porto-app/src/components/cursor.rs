@@ -1,7 +1,6 @@
 use dioxus::prelude::*;
 use wasm_bindgen::prelude::*;
 use wasm_bindgen::JsCast;
-use crate::styles::theme;
 
 fn is_on_dark_bg(cx: f64, cy: f64) -> bool {
     let document = match web_sys::window().and_then(|w| w.document()) {

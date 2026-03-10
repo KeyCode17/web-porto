@@ -49,7 +49,7 @@ fn request_animation_frame(f: &Closure<dyn FnMut()>) {
 }
 
 fn build_graph(skills_json: &str, width: f64, height: f64) -> Graph {
-    let skills: Vec<shared::Skill> =
+    let skills: Vec<porto_shared::Skill> =
         serde_json::from_str(skills_json).expect("Invalid skills JSON");
 
     let cx = width / 2.0;

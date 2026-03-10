@@ -1,12 +1,12 @@
 [application]
-name = "web-porto-app"
+name = "porto-app"
 default_platform = "web"
 
 [web.app]
 title = "Daffa Karyudi | AI Software Engineer"
 
 [web.watcher]
-watch_path = ["crates", "content", "public"]
+watch_path = ["porto-app", "porto-shared", "content", "public"]
 
 [web.resource]
 style = []

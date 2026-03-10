@@ -2,7 +2,6 @@ use dioxus::prelude::*;
 use wasm_bindgen::prelude::*;
 use wasm_bindgen::JsCast;
 use crate::data;
-use crate::styles::theme;
 
 const STAMP_LABELS: &[&str] = &["PUBLISHED", "PEER-REVIEWED", "PUBLISHED"];
 
