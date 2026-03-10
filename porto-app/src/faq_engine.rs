@@ -1,4 +1,4 @@
-use shared::FaqEntry;
+use porto_shared::FaqEntry;
 use std::collections::{HashMap, HashSet};
 
 const STOPWORDS: &[&str] = &[

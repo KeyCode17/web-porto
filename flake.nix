@@ -1,45 +1,66 @@
 {
-  description = "Rust + WASM Brutalist Portfolio";
+  description = "Daffa Karyudi - Portfolio (Rust + WASM / Dioxus)";
 
   inputs = {
-    clan-core.url = "https://git.clan.lol/clan/clan-core/archive/main.tar.gz";
-    nixpkgs.follows = "clan-core/nixpkgs";
-    flake-utils.url = "github:numtide/flake-utils";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
+
     rust-overlay = {
       url = "github:oxalica/rust-overlay";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+
+    flake-utils.url = "github:numtide/flake-utils";
   };
 
-  outputs = { self, clan-core, nixpkgs, flake-utils, rust-overlay }:
-    let
-      clan = clan-core.lib.clan {
-        inherit self;
-        imports = [ ./clan.nix ];
-      };
-    in
+  outputs = { self, nixpkgs, rust-overlay, flake-utils, ... }:
     flake-utils.lib.eachDefaultSystem (system:
       let
-        overlays = [ (import rust-overlay) ];
-        pkgs = import nixpkgs { inherit system overlays; };
+        pkgs = import nixpkgs {
+          inherit system;
+          overlays = [ rust-overlay.overlays.default ];
+        };
+
         rustToolchain = pkgs.rust-bin.stable.latest.default.override {
           targets = [ "wasm32-unknown-unknown" ];
         };
       in {
+        packages.default = pkgs.stdenv.mkDerivation {
+          pname = "web-porto";
+          version = "0.1.0";
+          src = pkgs.lib.cleanSource ./.;
+
+          nativeBuildInputs = [
+            rustToolchain
+            pkgs.dioxus-cli
+            pkgs.wasm-bindgen-cli
+            pkgs.binaryen
+            pkgs.cacert
+          ];
+
+          buildPhase = ''
+            export HOME=$TMPDIR
+            export CARGO_HOME=$TMPDIR/.cargo
+            dx bundle --package porto-app
+          '';
+
+          installPhase = ''
+            mkdir -p $out
+            cp -r target/dx/porto-app/release/web/public/* $out/
+          '';
+        };
+
         devShells.default = pkgs.mkShell {
           buildInputs = [
             rustToolchain
-            pkgs.wasm-pack
+            pkgs.dioxus-cli
             pkgs.wasm-bindgen-cli
             pkgs.binaryen
             pkgs.cargo-watch
             pkgs.simple-http-server
-            pkgs.dioxus-cli
-            clan-core.packages.${system}.clan-cli
           ];
         };
       }
     ) // {
-      inherit (clan.config) nixosConfigurations clanInternals;
+      nixosModules.default = import ./nix/module.nix self;
     };
 }
