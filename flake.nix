@@ -9,10 +9,17 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
+    crane.url = "github:ipetkov/crane";
+
     flake-utils.url = "github:numtide/flake-utils";
   };
 
-  outputs = { self, nixpkgs, rust-overlay, flake-utils, ... }:
+  nixConfig = {
+    extra-substituters = [ "https://porto.cachix.org" ];
+    extra-trusted-public-keys = [ "porto.cachix.org-1:+LLDAFA3ZLtOWuVBRn5V/hNjbDKW1ZYqhxQShPQBTPc=" ];
+  };
+
+  outputs = { self, nixpkgs, rust-overlay, crane, flake-utils, ... }:
     flake-utils.lib.eachDefaultSystem (system:
       let
         pkgs = import nixpkgs {
@@ -23,24 +30,32 @@
         rustToolchain = pkgs.rust-bin.stable.latest.default.override {
           targets = [ "wasm32-unknown-unknown" ];
         };
+
+        craneLib = (crane.mkLib pkgs).overrideToolchain rustToolchain;
+        src = pkgs.lib.cleanSource ./.;
+        cargoVendorDir = craneLib.vendorCargoDeps { inherit src; };
       in {
         packages.default = pkgs.stdenv.mkDerivation {
           pname = "web-porto";
           version = "0.1.0";
-          src = pkgs.lib.cleanSource ./.;
+          inherit src;
 
           nativeBuildInputs = [
             rustToolchain
             pkgs.dioxus-cli
             pkgs.wasm-bindgen-cli
             pkgs.binaryen
-            pkgs.cacert
           ];
 
-          buildPhase = ''
+          configurePhase = ''
             export HOME=$TMPDIR
             export CARGO_HOME=$TMPDIR/.cargo
-            dx bundle --package porto-app
+            mkdir -p .cargo
+            cp ${cargoVendorDir}/config.toml .cargo/config.toml
+          '';
+
+          buildPhase = ''
+            dx bundle --package porto-app --release
           '';
 
           installPhase = ''
