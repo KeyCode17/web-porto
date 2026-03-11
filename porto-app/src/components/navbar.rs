@@ -9,7 +9,7 @@ pub fn Navbar() -> Element {
             style: "position: fixed; top: 0; left: 0; right: 0; z-index: 100; background-color: {theme::DEEP_NAVY}; color: {theme::MINT_WHITE}; padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em;",
             Link {
                 to: Route::Home {},
-                span { style: "color: {theme::MINT_WHITE}; font-size: 1.2rem;", "PORTO" }
+                span { style: "color: {theme::MINT_WHITE}; font-size: 1.2rem;", "KeyCode" }
             }
             div {
                 class: "nav-links",
