@@ -5,7 +5,7 @@ authors = ["Mochammad Daffa Putra Karyudi"]
 venue = "JCTA (Journal of Computing Theories and Applications), 2024"
 abstract = "Research on school scope classification using Deep Neural Networks, focusing on students' living environments and educational opportunities. Uses Spearman's Rank Correlation Coefficient with K-fold cross-validation on 677 student records. Best model achieved 83.08% accuracy."
 pdf_file = "school-scope-dnn.pdf"
-url = "https://publikasi.dinus.ac.id/jcta/article/view/11739/4938"
+url = "https://publikasi.dinus.ac.id/index.php/jcta/article/view/11739"
 tags = ["Deep Learning", "DNN", "Education", "Feature Selection"]
 
 [[paper]]
@@ -15,7 +15,7 @@ authors = ["Mochammad Daffa Putra Karyudi"]
 venue = "IJACSA (International Journal of Advanced Computer Science and Applications), 2024"
 abstract = "Uses CNN for multi-dimensional sentiment analysis (Sentiment, Tone, Object) on social issues including poverty, health, education, violence, and environment. Automatically collects articles from various news and media platforms to analyze public sentiment on social issues and provide AI-driven solutions."
 pdf_file = "sentiment-analysis-social-issues.pdf"
-url = "https://thesai.org/Downloads/Volume15No10/Paper_61-Deep_Learning_Approach_in_Complex_Sentiment.pdf"
+url = "https://thesai.org/Publications/ViewPaper?Volume=15&Issue=10&Code=ijacsa&SerialNo=61"
 tags = ["Deep Learning", "CNN", "NLP", "Sentiment Analysis", "Social Issues"]
 
 [[paper]]
@@ -25,5 +25,5 @@ authors = ["Mochammad Daffa Putra Karyudi"]
 venue = "Jurnal Teknologi Informasi Dan Komunikasi, 2024"
 abstract = "Uses K-Means clustering with Euclidean distance to analyze ICT development gaps across regencies/cities in East Java Province based on IP-TIK (ICT Development Index) data from 2021-2022. Findings show the average ICT level is moderate, with inequality in computer ownership in cluster 4 (low category) affecting several regencies."
 pdf_file = "kmeans-ict-east-java.pdf"
-url = "https://journal.lembagakita.org/jtik/article/view/1815/1716"
+url = "https://journal.lembagakita.org/index.php/jtik/article/view/1815"
 tags = ["K-Means", "Clustering", "ICT", "Data Analysis"]

@@ -1,4 +1,9 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
   <rect width="32" height="32" rx="4" fill="#2B3A42"/>
-  <text x="16" y="22" font-family="monospace" font-size="16" font-weight="bold" fill="#E87F24" text-anchor="middle">DK</text>
+  <g fill="#E87F24">
+    <!-- D -->
+    <path d="M5 8h5c3.9 0 7 3.1 7 7s-3.1 7-7 7H5V8zm3 2.5v9h2c2.5 0 4.5-2 4.5-4.5S12.5 10.5 10 10.5H8z"/>
+    <!-- K -->
+    <path d="M19 8h3v5.2l4.5-5.2h3.6l-5 5.5L30.5 22H27l-3.8-5.8-1.2 1.3V22h-3V8z"/>
+  </g>
 </svg>
