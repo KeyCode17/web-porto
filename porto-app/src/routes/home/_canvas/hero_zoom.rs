@@ -1,12 +1,9 @@
-use crate::utils::EventListener;
+use crate::libs::EventListener;
+use crate::routes::home::_constants::{
+    ABOUT_CONTENT_ID, HERO_NAME_ID, HERO_OVERLAY_ID, HERO_SUBTITLE_ID, HERO_TEXT_WRAPPER_ID,
+    HERO_ZOOM_CONTAINER_ID,
+};
 use wasm_bindgen::JsCast;
-
-const HERO_ZOOM_CONTAINER_ID: &str = "hero-zoom-container";
-const HERO_NAME_ID: &str = "hero-name";
-const HERO_SUBTITLE_ID: &str = "hero-subtitle";
-const HERO_OVERLAY_ID: &str = "hero-bg-overlay";
-const HERO_TEXT_WRAPPER_ID: &str = "hero-text-wrapper";
-const ABOUT_CONTENT_ID: &str = "about-content";
 
 const MAX_NAME_SCALE: f64 = 19.0;
 const SUBTITLE_FADE_RATE: f64 = 4.0;

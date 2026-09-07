@@ -1,29 +1,11 @@
+pub mod _constants;
+pub mod detail;
+
+use self::_constants::{BURN_DURATION_MS, PAPER_POS, PHOTO_POS, PHOTO_URLS, STAMP_LABELS};
 use crate::data;
-use crate::utils::{on_escape, sleep_ms};
+use crate::libs::{on_escape, sleep_ms};
 use dioxus::prelude::*;
 use std::rc::Rc;
-
-const BURN_DURATION_MS: i32 = 3500;
-
-const STAMP_LABELS: &[&str] = &["PUBLISHED", "PEER-REVIEWED", "PUBLISHED"];
-
-const PAPER_POS: &[(&str, &str, &str)] = &[
-    ("35%", "2%", "-3deg"),
-    ("5%", "35%", "2.5deg"),
-    ("40%", "62%", "-1.5deg"),
-];
-
-const PHOTO_POS: &[(&str, &str, &str)] = &[
-    ("2%", "8%", "-12deg"),
-    ("55%", "42%", "7deg"),
-    ("8%", "75%", "-5deg"),
-];
-
-const PHOTO_URLS: &[&str] = &[
-    "/photos/thumb/Photo%201.JPG",
-    "/photos/thumb/Photo%202.JPG",
-    "/photos/thumb/Photo%203.JPG",
-];
 
 #[component]
 pub fn Papers() -> Element {

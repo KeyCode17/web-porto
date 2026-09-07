@@ -1,17 +1,19 @@
-use crate::canvas::force_graph::SkillsGraph;
-use crate::canvas::particles::ParticleField;
-use crate::canvas::scroll_reveal::ScrollReveals;
-use crate::canvas::{force_graph, hero_zoom, particles, scroll_reveal};
-use crate::components::timeline::Timeline;
+pub mod _canvas;
+pub mod _components;
+pub mod _constants;
+
+use self::_canvas::force_graph::SkillsGraph;
+use self::_canvas::particles::ParticleField;
+use self::_canvas::scroll_reveal::ScrollReveals;
+use self::_canvas::{force_graph, hero_zoom, particles, scroll_reveal};
+use self::_constants::{HERO_CANVAS_ID, SKILLS_CANVAS_ID};
 use crate::data;
+use crate::libs::EventListener;
+use crate::routes::home::_components::timeline::Timeline;
 use crate::styles::theme;
-use crate::utils::EventListener;
 use dioxus::prelude::*;
 use std::cell::RefCell;
 use std::rc::Rc;
-
-const HERO_CANVAS_ID: &str = "hero-canvas";
-const SKILLS_CANVAS_ID: &str = "skills-canvas";
 
 #[derive(Default)]
 struct HomeEffects {

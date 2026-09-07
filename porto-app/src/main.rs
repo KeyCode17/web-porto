@@ -1,19 +1,17 @@
 use dioxus::prelude::*;
 
-mod canvas;
 mod components;
 mod data;
-mod faq_engine;
-mod pages;
+mod libs;
+mod routes;
 mod styles;
-mod utils;
 
-use pages::chat::Chat;
-use pages::home::Home;
-use pages::paper_detail::PaperDetail;
-use pages::papers::Papers;
-use pages::project_detail::ProjectDetail;
-use pages::projects::Projects;
+use routes::chat::Chat;
+use routes::home::Home;
+use routes::papers::Papers;
+use routes::papers::detail::PaperDetail;
+use routes::projects::Projects;
+use routes::projects::detail::ProjectDetail;
 
 #[derive(Clone, Debug, PartialEq, Routable)]
 enum Route {

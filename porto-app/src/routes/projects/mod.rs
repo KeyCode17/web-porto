@@ -1,24 +1,14 @@
+pub mod _constants;
+pub mod detail;
+
+use self::_constants::{
+    CARD_DEALS, PHASE_DEAL_DELAY_MS, PHASE_READY_DELAY_MS, PHASE_SHUFFLE_DELAY_MS,
+};
 use crate::data;
+use crate::libs::{on_escape, sleep_ms};
 use crate::styles::theme;
-use crate::utils::{on_escape, sleep_ms};
 use dioxus::prelude::*;
 use std::rc::Rc;
-
-const PHASE_SHUFFLE_DELAY_MS: i32 = 200;
-const PHASE_DEAL_DELAY_MS: i32 = 600;
-const PHASE_READY_DELAY_MS: i32 = 2000;
-
-const CARD_DEALS: &[(&str, &str, &str)] = &[
-    ("\u{2660}", "#E5E5E5", "#D65108"),
-    ("\u{2666}", "#E84040", "#568EA3"),
-    ("\u{2665}", "#E84040", "#02182B"),
-    ("\u{2663}", "#E5E5E5", "#8B1A1A"),
-    ("\u{2666}", "#E84040", "#568EA3"),
-    ("\u{2660}", "#E5E5E5", "#D65108"),
-    ("\u{2665}", "#E84040", "#02182B"),
-    ("\u{2660}", "#E5E5E5", "#D65108"),
-    ("\u{2665}", "#E84040", "#02182B"),
-];
 
 fn card_deal(index: usize) -> (&'static str, &'static str, &'static str) {
     CARD_DEALS[index % CARD_DEALS.len()]

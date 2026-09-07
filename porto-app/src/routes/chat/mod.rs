@@ -1,7 +1,9 @@
+pub mod _engine;
+
 use crate::data::load_faq;
-use crate::faq_engine::FaqEngine;
+use crate::libs::sleep_ms;
+use crate::routes::chat::_engine::FaqEngine;
 use crate::styles::theme;
-use crate::utils::sleep_ms;
 use dioxus::prelude::*;
 use wasm_bindgen::prelude::*;
 use wasm_bindgen_futures::JsFuture;

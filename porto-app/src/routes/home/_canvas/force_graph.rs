@@ -1,5 +1,5 @@
-use super::{AnimationFrameLoop, start_animation_loop};
-use crate::utils::EventListener;
+use crate::libs::EventListener;
+use crate::libs::{AnimationFrameLoop, start_animation_loop};
 use std::cell::RefCell;
 use std::rc::Rc;
 use wasm_bindgen::JsCast;
