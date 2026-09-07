@@ -61,6 +61,11 @@
           installPhase = ''
             mkdir -p $out
             cp -r target/dx/porto-app/release/web/public/* $out/
+
+            # Photos, paper PDFs, the embedding model and the favicon are
+            # referenced by absolute URL and are not part of the dx bundle, so
+            # they have to be copied in for $out to be a complete site root.
+            cp -r public/. $out/
           '';
         };
 
