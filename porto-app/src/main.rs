@@ -6,13 +6,14 @@ mod data;
 mod faq_engine;
 mod pages;
 mod styles;
+mod utils;
 
-use pages::home::Home;
-use pages::projects::Projects;
-use pages::project_detail::ProjectDetail;
-use pages::papers::Papers;
-use pages::paper_detail::PaperDetail;
 use pages::chat::Chat;
+use pages::home::Home;
+use pages::paper_detail::PaperDetail;
+use pages::papers::Papers;
+use pages::project_detail::ProjectDetail;
+use pages::projects::Projects;
 
 #[derive(Clone, Debug, PartialEq, Routable)]
 enum Route {
@@ -47,7 +48,6 @@ fn app() -> Element {
     }
 }
 
-/// Layout wrapping all routes — renders navbar, global styles, cursor
 #[component]
 fn Layout() -> Element {
     rsx! {

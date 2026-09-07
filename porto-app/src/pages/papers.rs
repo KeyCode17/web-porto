@@ -1,18 +1,18 @@
-use dioxus::prelude::*;
-use wasm_bindgen::prelude::*;
-use wasm_bindgen::JsCast;
 use crate::data;
+use crate::utils::{on_escape, sleep_ms};
+use dioxus::prelude::*;
+use std::rc::Rc;
+
+const BURN_DURATION_MS: i32 = 3500;
 
 const STAMP_LABELS: &[&str] = &["PUBLISHED", "PEER-REVIEWED", "PUBLISHED"];
 
-/// Paper positions: (top%, left%, rotation)
 const PAPER_POS: &[(&str, &str, &str)] = &[
     ("35%", "2%", "-3deg"),
     ("5%", "35%", "2.5deg"),
     ("40%", "62%", "-1.5deg"),
 ];
 
-/// Photo positions: (top%, left%, rotation)
 const PHOTO_POS: &[(&str, &str, &str)] = &[
     ("2%", "8%", "-12deg"),
     ("55%", "42%", "7deg"),
@@ -25,28 +25,14 @@ const PHOTO_URLS: &[&str] = &[
     "/photos/thumb/Photo%203.JPG",
 ];
 
-
 #[component]
 pub fn Papers() -> Element {
     let papers = data::load_papers();
     let mut expanded: Signal<Option<usize>> = use_signal(|| None);
     let mut burning: Signal<Option<(usize, f64, f64)>> = use_signal(|| None);
-    let mut burned: Signal<Vec<usize>> = use_signal(|| Vec::new());
+    let mut burned: Signal<Vec<usize>> = use_signal(Vec::new);
 
-    use_effect(move || {
-        let document = web_sys::window().unwrap().document().unwrap();
-        let cb_key = Closure::<dyn FnMut(web_sys::KeyboardEvent)>::new(
-            move |e: web_sys::KeyboardEvent| {
-                if e.key() == "Escape" {
-                    expanded.set(None);
-                }
-            },
-        );
-        document
-            .add_event_listener_with_callback("keydown", cb_key.as_ref().unchecked_ref())
-            .unwrap();
-        cb_key.forget();
-    });
+    let _escape_listener = use_hook(|| Rc::new(on_escape(move || expanded.set(None))));
 
     let current_expanded = *expanded.read();
 
@@ -57,13 +43,14 @@ pub fn Papers() -> Element {
 
             div { class: "board-scene",
 
-                // Pinned photos
                 for (i, url) in PHOTO_URLS.iter().enumerate() {
                     {
                         let (top, left, rot) = PHOTO_POS[i];
                         let style = format!("top: {}; left: {}; transform: rotate({});", top, left, rot);
-                        let current_burn = *burning.read();
-                        let is_burning = matches!(current_burn, Some((idx, _, _)) if idx == i);
+                        let burn_origin = burning
+                            .read()
+                            .filter(|(idx, _, _)| *idx == i);
+                        let is_burning = burn_origin.is_some();
                         let is_burned = burned.read().contains(&i);
                         let wrap_class = if is_burning { "board-photo-wrap burning" } else { "board-photo-wrap" };
                         if is_burned { return rsx! {} }
@@ -74,28 +61,22 @@ pub fn Papers() -> Element {
                                 style: "{style}",
                                 key: "photo-{i}",
                                 onclick: move |evt| {
-                                    // Block if any photo is currently burning
                                     if burning.read().is_some() { return; }
                                     let coords = evt.element_coordinates();
                                     let x_pct = (coords.x / 128.0 * 100.0).clamp(0.0, 100.0);
                                     let y_pct = (coords.y / 168.0 * 100.0).clamp(0.0, 100.0);
                                     burning.set(Some((i, x_pct, y_pct)));
 
-                                    let window = web_sys::window().unwrap();
-                                    let cb = Closure::<dyn FnMut()>::new(move || {
+                                    spawn(async move {
+                                        sleep_ms(BURN_DURATION_MS).await;
                                         burning.set(None);
                                         burned.write().push(i);
                                     });
-                                    window.set_timeout_with_callback_and_timeout_and_arguments_0(
-                                        cb.as_ref().unchecked_ref(), 3500
-                                    ).unwrap();
-                                    cb.forget();
                                 },
                                 div { class: "board-pin board-pin-red" }
                                 img { class: "board-photo-img", src: "{url}", alt: "" }
-                                if is_burning {
+                                if let Some((_, bx, by)) = burn_origin {
                                     {
-                                        let (_, bx, by) = current_burn.unwrap();
                                         let burn_style = format!("--burn-x: {:.1}%; --burn-y: {:.1}%;", bx, by);
                                         rsx! {
                                             div {
@@ -110,7 +91,6 @@ pub fn Papers() -> Element {
                     }
                 }
 
-                // Paper documents
                 for (i, paper) in papers.iter().enumerate() {
                     {
                         let (top, left, rot) = PAPER_POS[i];
@@ -152,7 +132,6 @@ pub fn Papers() -> Element {
                 }
             }
 
-            // Expanded paper overlay
             if let Some(idx) = current_expanded {
                 {
                     let paper = &papers[idx];

@@ -1,76 +1,108 @@
-use wasm_bindgen::prelude::*;
+use crate::utils::EventListener;
 use wasm_bindgen::JsCast;
 
-pub fn init_hero_zoom() {
-    let window = web_sys::window().unwrap();
+const HERO_ZOOM_CONTAINER_ID: &str = "hero-zoom-container";
+const HERO_NAME_ID: &str = "hero-name";
+const HERO_SUBTITLE_ID: &str = "hero-subtitle";
+const HERO_OVERLAY_ID: &str = "hero-bg-overlay";
+const HERO_TEXT_WRAPPER_ID: &str = "hero-text-wrapper";
+const ABOUT_CONTENT_ID: &str = "about-content";
 
-    let cb = Closure::<dyn FnMut()>::new(move || {
-        let window = web_sys::window().unwrap();
-        let document = window.document().unwrap();
+const MAX_NAME_SCALE: f64 = 19.0;
+const SUBTITLE_FADE_RATE: f64 = 4.0;
+const OVERLAY_FADE_SPAN: f64 = 0.6;
+const HERO_FADE_START: f64 = 0.7;
+const HERO_FADE_SPAN: f64 = 0.3;
+const ABOUT_FADE_START: f64 = 0.4;
+const ABOUT_FADE_SPAN: f64 = 0.4;
+const ABOUT_INTERACTIVE_THRESHOLD: f64 = 0.5;
 
-        let container = match document.get_element_by_id("hero-zoom-container") {
-            Some(el) => el,
-            None => return,
-        };
+pub fn init_hero_zoom() -> Option<EventListener> {
+    let window = web_sys::window()?;
+    apply_hero_zoom();
+    EventListener::new(window.as_ref(), "scroll", |_| apply_hero_zoom())
+}
 
-        let rect = container.get_bounding_client_rect();
-        let container_top = rect.top();
-        let container_height = rect.height();
-        let vh = window.inner_height().unwrap().as_f64().unwrap();
+fn set_style(document: &web_sys::Document, id: &str, property: &str, value: &str) {
+    let element = document
+        .get_element_by_id(id)
+        .and_then(|el| el.dyn_into::<web_sys::HtmlElement>().ok());
 
-        // 0.0 at top, 1.0 when fully scrolled through
-        let progress = (-container_top / (container_height - vh)).clamp(0.0, 1.0);
+    if let Some(element) = element {
+        let _ = element.style().set_property(property, value);
+    }
+}
 
-        // === Phase 1: Hero zoom (0% - 50%) ===
-        let hero_progress = (progress / 0.5).clamp(0.0, 1.0);
+fn apply_hero_zoom() {
+    let Some(window) = web_sys::window() else {
+        return;
+    };
+    let Some(document) = window.document() else {
+        return;
+    };
+    let Some(container) = document.get_element_by_id(HERO_ZOOM_CONTAINER_ID) else {
+        return;
+    };
+    let Some(viewport_height) = window.inner_height().ok().and_then(|value| value.as_f64()) else {
+        return;
+    };
 
-        // Ease-in cubic: starts slow, accelerates — feels smooth
-        let eased = hero_progress * hero_progress * hero_progress;
+    let rect = container.get_bounding_client_rect();
+    let scrollable_height = rect.height() - viewport_height;
+    if scrollable_height <= 0.0 {
+        return;
+    }
 
-        // Name scales 1x -> 20x with easing
-        let scale = 1.0 + eased * 19.0;
+    let progress = (-rect.top() / scrollable_height).clamp(0.0, 1.0);
+    let hero_progress = (progress / 0.5).clamp(0.0, 1.0);
+    let eased = hero_progress * hero_progress * hero_progress;
 
-        // Subtitle fades out instantly
-        let subtitle_opacity = (1.0 - hero_progress * 4.0).clamp(0.0, 1.0);
+    let scale = 1.0 + eased * MAX_NAME_SCALE;
+    let subtitle_opacity = (1.0 - hero_progress * SUBTITLE_FADE_RATE).clamp(0.0, 1.0);
+    let overlay_opacity = (hero_progress / OVERLAY_FADE_SPAN).clamp(0.0, 1.0);
+    let hero_text_opacity =
+        (1.0 - (hero_progress - HERO_FADE_START) / HERO_FADE_SPAN).clamp(0.0, 1.0);
+    let about_progress = ((progress - ABOUT_FADE_START) / ABOUT_FADE_SPAN).clamp(0.0, 1.0);
 
-        // Background overlay to WARM_BEIGE
-        let bg_opacity = (hero_progress / 0.6).clamp(0.0, 1.0);
+    set_style(
+        &document,
+        HERO_NAME_ID,
+        "transform",
+        &format!("scale({})", scale),
+    );
+    set_style(
+        &document,
+        HERO_SUBTITLE_ID,
+        "opacity",
+        &subtitle_opacity.to_string(),
+    );
+    set_style(
+        &document,
+        HERO_OVERLAY_ID,
+        "opacity",
+        &overlay_opacity.to_string(),
+    );
+    set_style(
+        &document,
+        HERO_TEXT_WRAPPER_ID,
+        "opacity",
+        &hero_text_opacity.to_string(),
+    );
+    set_style(
+        &document,
+        ABOUT_CONTENT_ID,
+        "opacity",
+        &about_progress.to_string(),
+    );
 
-        // Hero text wrapper fades out at end of phase 1
-        let hero_text_opacity = (1.0 - (hero_progress - 0.7) / 0.3).clamp(0.0, 1.0);
-
-        if let Some(el) = document.get_element_by_id("hero-name") {
-            let el: web_sys::HtmlElement = el.dyn_into().unwrap();
-            el.style().set_property("transform", &format!("scale({})", scale)).unwrap();
-        }
-        if let Some(el) = document.get_element_by_id("hero-subtitle") {
-            let el: web_sys::HtmlElement = el.dyn_into().unwrap();
-            el.style().set_property("opacity", &format!("{}", subtitle_opacity)).unwrap();
-        }
-        if let Some(el) = document.get_element_by_id("hero-bg-overlay") {
-            let el: web_sys::HtmlElement = el.dyn_into().unwrap();
-            el.style().set_property("opacity", &format!("{}", bg_opacity)).unwrap();
-        }
-        if let Some(el) = document.get_element_by_id("hero-text-wrapper") {
-            let el: web_sys::HtmlElement = el.dyn_into().unwrap();
-            el.style().set_property("opacity", &format!("{}", hero_text_opacity)).unwrap();
-        }
-
-        // === Phase 2: About appears (40% - 80%) ===
-        let about_progress = ((progress - 0.4) / 0.4).clamp(0.0, 1.0);
-
-        // About content fades in (0 -> 1)
-        if let Some(el) = document.get_element_by_id("about-content") {
-            let el: web_sys::HtmlElement = el.dyn_into().unwrap();
-            el.style().set_property("opacity", &format!("{}", about_progress)).unwrap();
-            // Enable pointer events when visible
-            let pe = if about_progress > 0.5 { "auto" } else { "none" };
-            el.style().set_property("pointer-events", pe).unwrap();
-        }
-    });
-
-    window
-        .add_event_listener_with_callback("scroll", cb.as_ref().unchecked_ref())
-        .unwrap();
-    cb.forget();
+    let pointer_events = match about_progress > ABOUT_INTERACTIVE_THRESHOLD {
+        true => "auto",
+        false => "none",
+    };
+    set_style(
+        &document,
+        ABOUT_CONTENT_ID,
+        "pointer-events",
+        pointer_events,
+    );
 }

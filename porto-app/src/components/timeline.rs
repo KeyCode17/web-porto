@@ -1,10 +1,17 @@
-use std::cell::RefCell;
-use std::rc::Rc;
-use dioxus::prelude::*;
-use wasm_bindgen::prelude::*;
-use wasm_bindgen::JsCast;
 use crate::data;
 use crate::styles::theme;
+use crate::utils::EventListener;
+use dioxus::prelude::*;
+use std::cell::RefCell;
+use std::rc::Rc;
+use wasm_bindgen::JsCast;
+
+const TIMELINE_CONTAINER_ID: &str = "timeline-scroll-container";
+const TIMELINE_TRACK_ID: &str = "timeline-track";
+const TIMELINE_CHART_ID: &str = "timeline-chart";
+const TIMELINE_CURSOR_ID: &str = "timeline-cursor";
+const BAR_FOCUS_EVENT: &str = "barfocus";
+const FOCUSED_ATTRIBUTE: &str = "data-focused";
 
 fn parse_date(date_str: &str) -> (i32, u32) {
     if date_str.is_empty() {
@@ -26,20 +33,11 @@ fn date_to_months(year: i32, month: u32) -> f64 {
 
 fn bar_color(index: usize, kind: &str) -> &'static str {
     if kind == "education" {
-        const EDU_COLORS: &[&str] = &[
-            "#2D6A4F",
-            "#1a5276",
-            "#4A6741",
-        ];
+        const EDU_COLORS: &[&str] = &["#2D6A4F", "#1a5276", "#4A6741"];
         return EDU_COLORS[index % EDU_COLORS.len()];
     }
     const COLORS: &[&str] = &[
-        "#02182B",
-        "#D65108",
-        "#2D6A4F",
-        "#6B4C8A",
-        "#B85C38",
-        "#1a5276",
+        "#02182B", "#D65108", "#2D6A4F", "#6B4C8A", "#B85C38", "#1a5276",
     ];
     COLORS[index % COLORS.len()]
 }
@@ -51,9 +49,18 @@ fn format_date_display(date_str: &str) -> String {
     let parts: Vec<&str> = date_str.split('-').collect();
     if parts.len() == 2 {
         let month_name = match parts[1] {
-            "01" => "Jan", "02" => "Feb", "03" => "Mar", "04" => "Apr",
-            "05" => "May", "06" => "Jun", "07" => "Jul", "08" => "Aug",
-            "09" => "Sep", "10" => "Oct", "11" => "Nov", "12" => "Dec",
+            "01" => "Jan",
+            "02" => "Feb",
+            "03" => "Mar",
+            "04" => "Apr",
+            "05" => "May",
+            "06" => "Jun",
+            "07" => "Jul",
+            "08" => "Aug",
+            "09" => "Sep",
+            "10" => "Oct",
+            "11" => "Nov",
+            "12" => "Dec",
             _ => parts[1],
         };
         format!("{} {}", month_name, parts[0])
@@ -67,7 +74,6 @@ pub fn Timeline() -> Element {
     let experiences = data::load_experience();
     let mut selected = use_signal(|| None::<usize>);
 
-    // Find time range
     let mut min_months = f64::MAX;
     let mut max_months = f64::MIN;
     for exp in experiences.iter() {
@@ -75,8 +81,12 @@ pub fn Timeline() -> Element {
         let (ey, em) = parse_date(&exp.end_date);
         let start = date_to_months(sy, sm);
         let end = date_to_months(ey, em);
-        if start < min_months { min_months = start; }
-        if end > max_months { max_months = end; }
+        if start < min_months {
+            min_months = start;
+        }
+        if end > max_months {
+            max_months = end;
+        }
     }
 
     min_months -= 2.0;
@@ -86,7 +96,6 @@ pub fn Timeline() -> Element {
     let start_year = (min_months / 12.0).floor() as i32;
     let end_year = (max_months / 12.0).ceil() as i32;
 
-    // Assign rows (greedy, no overlap — need 1 month gap)
     let mut row_ends: Vec<f64> = Vec::new();
     let mut row_assignments: Vec<usize> = Vec::new();
 
@@ -96,19 +105,22 @@ pub fn Timeline() -> Element {
         let start = date_to_months(sy, sm);
         let end = date_to_months(ey, em);
 
-        let mut assigned_row = None;
-        for (i, row_end) in row_ends.iter_mut().enumerate() {
-            if start >= *row_end + 1.0 {
+        let existing_row = row_ends.iter_mut().position(|row_end| {
+            let fits = start >= *row_end + 1.0;
+            if fits {
                 *row_end = end;
-                assigned_row = Some(i);
-                break;
             }
-        }
-        if assigned_row.is_none() {
-            row_ends.push(end);
-            assigned_row = Some(row_ends.len() - 1);
-        }
-        row_assignments.push(assigned_row.unwrap());
+            fits
+        });
+
+        let assigned_row = match existing_row {
+            Some(row) => row,
+            None => {
+                row_ends.push(end);
+                row_ends.len() - 1
+            }
+        };
+        row_assignments.push(assigned_row);
     }
 
     let num_rows = row_ends.len();
@@ -117,35 +129,53 @@ pub fn Timeline() -> Element {
     let axis_height: usize = 36;
     let _chart_height = num_rows * row_height + axis_height + 20;
 
-    // Track width wide enough to spread bars nicely
     let track_width: usize = 2000;
     let hijack_height: usize = track_width * 2;
 
-    use_effect(move || {
-        setup_scroll_hijack("timeline-scroll-container", "timeline-track");
-        setup_chart_click("timeline-scroll-container", "timeline-chart", "timeline-track");
+    let listeners: Rc<RefCell<Vec<EventListener>>> = use_hook(|| Rc::new(RefCell::new(Vec::new())));
 
-        // Listen for auto-focus events from scroll hijack
-        let document = web_sys::window().unwrap().document().unwrap();
-        if let Some(container) = document.get_element_by_id("timeline-scroll-container") {
-            let cb = Closure::<dyn FnMut()>::new(move || {
-                let document = web_sys::window().unwrap().document().unwrap();
-                if let Some(cont) = document.get_element_by_id("timeline-scroll-container") {
-                    if let Some(idx_str) = cont.get_attribute("data-focused") {
-                        if let Ok(idx) = idx_str.parse::<usize>() {
+    use_effect({
+        let listeners = listeners.clone();
+        move || {
+            let mut owned = listeners.borrow_mut();
+            if !owned.is_empty() {
+                return;
+            }
+
+            owned.extend(setup_scroll_hijack(
+                TIMELINE_CONTAINER_ID,
+                TIMELINE_TRACK_ID,
+            ));
+            owned.extend(setup_chart_click(
+                TIMELINE_CONTAINER_ID,
+                TIMELINE_CHART_ID,
+                TIMELINE_TRACK_ID,
+            ));
+
+            let container = web_sys::window()
+                .and_then(|window| window.document())
+                .and_then(|document| document.get_element_by_id(TIMELINE_CONTAINER_ID));
+
+            if let Some(container) = container {
+                owned.extend(EventListener::new(
+                    container.as_ref(),
+                    BAR_FOCUS_EVENT,
+                    move |_| {
+                        let focused = web_sys::window()
+                            .and_then(|window| window.document())
+                            .and_then(|document| document.get_element_by_id(TIMELINE_CONTAINER_ID))
+                            .and_then(|cont| cont.get_attribute(FOCUSED_ATTRIBUTE))
+                            .and_then(|idx| idx.parse::<usize>().ok());
+
+                        if let Some(idx) = focused {
                             selected.set(Some(idx));
                         }
-                    }
-                }
-            });
-            container
-                .add_event_listener_with_callback("barfocus", cb.as_ref().unchecked_ref())
-                .unwrap();
-            cb.forget();
+                    },
+                ));
+            }
         }
     });
 
-    // Sort experiences by start date (newest first) for mobile view
     let mut sorted_indices: Vec<usize> = (0..experiences.len()).collect();
     sorted_indices.sort_by(|&a, &b| {
         let (ay, am) = parse_date(&experiences[b].start_date);
@@ -157,10 +187,9 @@ pub fn Timeline() -> Element {
         section { id: "experience",
             style: "background-color: {theme::DEEP_NAVY};",
 
-            // === Desktop: horizontal scroll-hijack timeline ===
             div {
                 class: "timeline-desktop",
-                id: "timeline-scroll-container",
+                id: TIMELINE_CONTAINER_ID,
                 style: "height: {hijack_height}px; position: relative;",
 
                 div {
@@ -172,21 +201,19 @@ pub fn Timeline() -> Element {
                     }
 
                     div {
-                        id: "timeline-chart",
+                        id: TIMELINE_CHART_ID,
                         style: "border: 3px solid {theme::DEEP_NAVY}; background: {theme::MINT_WHITE}; overflow: hidden; position: relative; flex: 1 1 auto; min-height: 0;",
 
-                        // Cursor line — moves across the chart
                         div {
-                            id: "timeline-cursor",
+                            id: TIMELINE_CURSOR_ID,
                             style: "position: absolute; top: 0; bottom: 0; width: 2px; background: {theme::DARK_BROWN}; z-index: 50; left: 0; pointer-events: none; transition: none;",
-                            // Arrow head at bottom
                             div {
                                 style: "position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%); width: 0; height: 0; border-left: 6px solid transparent; border-right: 6px solid transparent; border-top: 8px solid {theme::DARK_BROWN};",
                             }
                         }
 
                         div {
-                            id: "timeline-track",
+                            id: TIMELINE_TRACK_ID,
                             style: "position: relative; width: {track_width}px; height: 100%; padding: 0.75rem 0; will-change: transform;",
 
                             for year in start_year..=end_year {
@@ -308,7 +335,6 @@ pub fn Timeline() -> Element {
                 }
             }
 
-            // === Mobile: vertical card list ===
             div {
                 class: "timeline-mobile",
                 style: "background-color: {theme::DEEP_NAVY}; padding: 4rem 1rem 2rem 1rem;",
@@ -337,7 +363,6 @@ pub fn Timeline() -> Element {
                                 },
                                 style: "margin-bottom: 1rem; border-left: 5px solid {color}; background: {theme::MINT_WHITE}; cursor: pointer; transition: all 0.15s ease;",
 
-                                // Header — always visible
                                 div {
                                     style: "padding: 0.8rem 1rem;",
                                     div {
@@ -357,7 +382,6 @@ pub fn Timeline() -> Element {
                                     }
                                 }
 
-                                // Expandable detail
                                 if is_selected {
                                     div {
                                         style: "padding: 0 1rem 0.8rem 1rem; border-top: 1px solid rgba(2, 24, 43, 0.1);",
@@ -387,16 +411,20 @@ pub fn Timeline() -> Element {
     }
 }
 
-fn setup_scroll_hijack(container_id: &str, track_id: &str) {
-    let window = web_sys::window().unwrap();
+fn setup_scroll_hijack(container_id: &str, track_id: &str) -> Option<EventListener> {
+    let window = web_sys::window()?;
 
     let container_id = container_id.to_string();
     let track_id = track_id.to_string();
     let last_focused: Rc<RefCell<Option<String>>> = Rc::new(RefCell::new(None));
 
-    let cb = Closure::<dyn FnMut()>::new(move || {
-        let window = web_sys::window().unwrap();
-        let document = window.document().unwrap();
+    let handler = move |_event: web_sys::Event| {
+        let Some(window) = web_sys::window() else {
+            return;
+        };
+        let Some(document) = window.document() else {
+            return;
+        };
 
         let container = match document.get_element_by_id(&container_id) {
             Some(el) => el,
@@ -406,7 +434,7 @@ fn setup_scroll_hijack(container_id: &str, track_id: &str) {
             Some(el) => el,
             None => return,
         };
-        let cursor = match document.get_element_by_id("timeline-cursor") {
+        let cursor = match document.get_element_by_id(TIMELINE_CURSOR_ID) {
             Some(el) => el,
             None => return,
         };
@@ -414,9 +442,11 @@ fn setup_scroll_hijack(container_id: &str, track_id: &str) {
         let rect = container.get_bounding_client_rect();
         let container_top = rect.top();
         let container_height = rect.height();
-        let viewport_height = window.inner_height().unwrap().as_f64().unwrap();
+        let Some(viewport_height) = window.inner_height().ok().and_then(|value| value.as_f64())
+        else {
+            return;
+        };
 
-        // Skip when container is hidden (mobile) or too small
         if container_height < 1.0 || container_height <= viewport_height {
             return;
         }
@@ -424,23 +454,26 @@ fn setup_scroll_hijack(container_id: &str, track_id: &str) {
         let scroll_progress = -container_top / (container_height - viewport_height);
         let scroll_progress = scroll_progress.clamp(0.0, 1.0);
 
-        let track_el: web_sys::HtmlElement = track.dyn_into().unwrap();
+        let Ok(track_el) = track.dyn_into::<web_sys::HtmlElement>() else {
+            return;
+        };
         let track_width = track_el.scroll_width() as f64;
 
-        // Use cursor's parent (chart container) for actual rendered width
-        let cursor_el: web_sys::HtmlElement = cursor.dyn_into().unwrap();
-        let chart_container = cursor_el.parent_element().unwrap();
-        let chart_html: web_sys::HtmlElement = chart_container.dyn_into().unwrap();
-        let chart_inner_width = chart_html.client_width() as f64; // content + padding, excludes border
+        let Ok(cursor_el) = cursor.dyn_into::<web_sys::HtmlElement>() else {
+            return;
+        };
+        let Some(chart_container) = cursor_el.parent_element() else {
+            return;
+        };
+        let Ok(chart_html) = chart_container.dyn_into::<web_sys::HtmlElement>() else {
+            return;
+        };
+        let chart_inner_width = chart_html.client_width() as f64;
         let chart_rect = chart_html.get_bounding_client_rect();
         let _border_left = (chart_rect.width() - chart_inner_width) / 2.0;
 
         let max_translate = (track_width - chart_inner_width).max(0.0);
 
-        // 3-phase scroll:
-        // Phase 1: cursor moves from left (0) to center (chart_width/2), track stays still
-        // Phase 2: cursor stays at center, track slides by max_translate
-        // Phase 3: cursor moves from center to right (chart_inner_width), track stays at max
         let half_chart = chart_inner_width / 2.0;
         let total_virtual = half_chart + max_translate + half_chart;
 
@@ -448,37 +481,29 @@ fn setup_scroll_hijack(container_id: &str, track_id: &str) {
 
         let (cursor_x, translate_x);
         if virtual_pos <= half_chart {
-            // Phase 1: cursor moves left to center
             cursor_x = virtual_pos;
             translate_x = 0.0;
         } else if virtual_pos <= half_chart + max_translate {
-            // Phase 2: cursor at center, track slides
             cursor_x = half_chart;
             translate_x = virtual_pos - half_chart;
         } else {
-            // Phase 3: cursor moves center to right
             cursor_x = half_chart + (virtual_pos - half_chart - max_translate);
             translate_x = max_translate;
         }
 
-        // Apply track translation
-        track_el
+        let _ = track_el
             .style()
-            .set_property("transform", &format!("translateX(-{}px)", translate_x))
-            .unwrap();
+            .set_property("transform", &format!("translateX(-{}px)", translate_x));
 
-        // Apply cursor position
-        cursor_el
+        let _ = cursor_el
             .style()
-            .set_property("left", &format!("{}px", cursor_x))
-            .unwrap();
+            .set_property("left", &format!("{}px", cursor_x));
 
-        // Auto-select: when cursor intersects multiple bars, pick the one
-        // whose left edge the cursor most recently crossed (latest start).
-        // Use the cursor's actual rendered position to avoid any offset calculation errors.
         let cursor_rect = cursor_el.get_bounding_client_rect();
         let cursor_viewport_x = cursor_rect.left();
-        let bars = document.query_selector_all(".timeline-bar").unwrap();
+        let Ok(bars) = document.query_selector_all(".timeline-bar") else {
+            return;
+        };
         let mut best_index: Option<String> = None;
         let mut best_left = f64::NEG_INFINITY;
         let mut best_dist = f64::MAX;
@@ -486,15 +511,15 @@ fn setup_scroll_hijack(container_id: &str, track_id: &str) {
 
         for i in 0..bars.length() {
             if let Some(bar) = bars.get(i) {
-                let el: web_sys::Element = bar.dyn_into().unwrap();
+                let Ok(el) = bar.dyn_into::<web_sys::Element>() else {
+                    continue;
+                };
                 let bar_rect = el.get_bounding_client_rect();
                 let bar_left = bar_rect.left();
                 let bar_right = bar_rect.right();
                 let intersects = cursor_viewport_x >= bar_left && cursor_viewport_x <= bar_right;
 
                 if intersects {
-                    // Among intersecting bars, prefer the one with the rightmost left edge
-                    // (the most recently entered bar as cursor moves left-to-right)
                     if !found_intersection || bar_left > best_left {
                         found_intersection = true;
                         best_left = bar_left;
@@ -511,70 +536,74 @@ fn setup_scroll_hijack(container_id: &str, track_id: &str) {
             }
         }
 
-        // Store the focused bar index on the container element
-        if let Some(ref idx) = best_index {
-            let mut last = last_focused.borrow_mut();
-            if last.as_ref() != Some(idx) {
-                *last = Some(idx.clone());
-                if let Some(cont) = document.get_element_by_id(&container_id) {
-                    cont.set_attribute("data-focused", idx).unwrap_or(());
-                    if let Ok(evt) = web_sys::CustomEvent::new("barfocus") {
-                        cont.dispatch_event(&evt).unwrap_or(false);
-                    }
+        if let Some(idx) = best_index {
+            let focus_changed = {
+                let mut last = last_focused.borrow_mut();
+                let changed = last.as_deref() != Some(idx.as_str());
+                if changed {
+                    *last = Some(idx.clone());
+                }
+                changed
+            };
+            if focus_changed && let Some(cont) = document.get_element_by_id(&container_id) {
+                let _ = cont.set_attribute(FOCUSED_ATTRIBUTE, &idx);
+                if let Ok(evt) = web_sys::CustomEvent::new(BAR_FOCUS_EVENT) {
+                    let _ = cont.dispatch_event(&evt);
                 }
             }
         }
-    });
+    };
 
-    window
-        .add_event_listener_with_callback("scroll", cb.as_ref().unchecked_ref())
-        .unwrap();
-    cb.forget();
+    EventListener::new(window.as_ref(), "scroll", handler)
 }
 
-fn scroll_to_track_position(container_id: &str, track_id: &str, target_track_x: f64) {
-    let window = web_sys::window().unwrap();
-    let document = window.document().unwrap();
+fn track_scroll_target(container_id: &str, track_id: &str, target_track_x: f64) -> Option<f64> {
+    let window = web_sys::window()?;
+    let document = window.document()?;
 
-    let container = match document.get_element_by_id(container_id) {
-        Some(el) => el,
-        None => return,
-    };
-    let track = match document.get_element_by_id(track_id) {
-        Some(el) => el,
-        None => return,
-    };
-    let cursor = match document.get_element_by_id("timeline-cursor") {
-        Some(el) => el,
-        None => return,
-    };
+    let container = document.get_element_by_id(container_id)?;
+    let track_el = document
+        .get_element_by_id(track_id)?
+        .dyn_into::<web_sys::HtmlElement>()
+        .ok()?;
+    let cursor_el = document
+        .get_element_by_id(TIMELINE_CURSOR_ID)?
+        .dyn_into::<web_sys::HtmlElement>()
+        .ok()?;
+    let chart_html = cursor_el
+        .parent_element()?
+        .dyn_into::<web_sys::HtmlElement>()
+        .ok()?;
 
-    let track_el: web_sys::HtmlElement = track.dyn_into().unwrap();
     let track_width = track_el.scroll_width() as f64;
-
-    let cursor_el: web_sys::HtmlElement = cursor.dyn_into().unwrap();
-    let chart = cursor_el.parent_element().unwrap();
-    let chart_html: web_sys::HtmlElement = chart.dyn_into().unwrap();
     let chart_inner_width = chart_html.client_width() as f64;
-
     let max_translate = (track_width - chart_inner_width).max(0.0);
     let half_chart = chart_inner_width / 2.0;
     let total_virtual = half_chart + max_translate + half_chart;
+    if total_virtual <= 0.0 {
+        return None;
+    }
 
-    // virtual_pos == cursor_track_x in all phases
-    let desired_virtual = target_track_x.clamp(0.0, total_virtual);
-    let desired_progress = desired_virtual / total_virtual;
+    let desired_progress = target_track_x.clamp(0.0, total_virtual) / total_virtual;
 
     let container_rect = container.get_bounding_client_rect();
     let container_height = container_rect.height();
-    let viewport_height = window.inner_height().unwrap().as_f64().unwrap();
-
+    let viewport_height = window.inner_height().ok()?.as_f64()?;
     if container_height <= viewport_height {
-        return;
+        return None;
     }
 
     let container_offset_top = container_rect.top() + window.scroll_y().unwrap_or(0.0);
-    let target_scroll = container_offset_top + desired_progress * (container_height - viewport_height);
+    Some(container_offset_top + desired_progress * (container_height - viewport_height))
+}
+
+fn scroll_to_track_position(container_id: &str, track_id: &str, target_track_x: f64) {
+    let Some(target_scroll) = track_scroll_target(container_id, track_id, target_track_x) else {
+        return;
+    };
+    let Some(window) = web_sys::window() else {
+        return;
+    };
 
     let opts = web_sys::ScrollToOptions::new();
     opts.set_top(target_scroll);
@@ -583,159 +612,149 @@ fn scroll_to_track_position(container_id: &str, track_id: &str, target_track_x: 
 }
 
 fn get_current_translate_x(track_id: &str) -> f64 {
-    let document = web_sys::window().unwrap().document().unwrap();
-    if let Some(track) = document.get_element_by_id(track_id) {
-        let track_el: web_sys::HtmlElement = track.dyn_into().unwrap();
-        let transform = track_el.style().get_property_value("transform").unwrap_or_default();
-        // Parse "translateX(-500px)" → 500.0
-        if let Some(start) = transform.find("translateX(") {
-            let rest = &transform[start + 11..];
-            if let Some(end) = rest.find("px") {
-                if let Ok(val) = rest[..end].parse::<f64>() {
-                    return val.abs();
-                }
-            }
-        }
-    }
-    0.0
+    const TRANSLATE_PREFIX: &str = "translateX(";
+
+    let Some(document) = web_sys::window().and_then(|window| window.document()) else {
+        return 0.0;
+    };
+    let Some(track_el) = document
+        .get_element_by_id(track_id)
+        .and_then(|track| track.dyn_into::<web_sys::HtmlElement>().ok())
+    else {
+        return 0.0;
+    };
+
+    let transform = track_el
+        .style()
+        .get_property_value("transform")
+        .unwrap_or_default();
+
+    let Some(start) = transform.find(TRANSLATE_PREFIX) else {
+        return 0.0;
+    };
+    let rest = &transform[start + TRANSLATE_PREFIX.len()..];
+    let Some(end) = rest.find("px") else {
+        return 0.0;
+    };
+
+    rest[..end].parse::<f64>().map(f64::abs).unwrap_or(0.0)
 }
 
-fn setup_chart_click(container_id: &str, chart_id: &str, track_id: &str) {
-    let document = web_sys::window().unwrap().document().unwrap();
-
-    let chart = match document.get_element_by_id(chart_id) {
-        Some(el) => el,
-        None => return,
+fn setup_chart_click(container_id: &str, chart_id: &str, track_id: &str) -> Vec<EventListener> {
+    let mut listeners = Vec::new();
+    let Some(window) = web_sys::window() else {
+        return listeners;
+    };
+    let Some(document) = window.document() else {
+        return listeners;
+    };
+    let Some(chart) = document.get_element_by_id(chart_id) else {
+        return listeners;
     };
 
     let container_id = container_id.to_string();
     let track_id = track_id.to_string();
+    let chart_id = chart_id.to_string();
     let is_dragging = Rc::new(RefCell::new(false));
 
-    // Click handler — move cursor to clicked position
     {
         let container_id = container_id.clone();
         let track_id = track_id.clone();
-        let chart_id_str = chart_id.to_string();
+        let chart_id = chart_id.clone();
 
-        let click_cb = Closure::<dyn FnMut(web_sys::MouseEvent)>::new(move |e: web_sys::MouseEvent| {
-            let document = web_sys::window().unwrap().document().unwrap();
-            let chart = match document.get_element_by_id(&chart_id_str) {
-                Some(el) => el,
-                None => return,
+        listeners.extend(EventListener::new(chart.as_ref(), "click", move |event| {
+            let Some(mouse_event) = event.dyn_ref::<web_sys::MouseEvent>() else {
+                return;
             };
-            let chart_html: web_sys::HtmlElement = chart.dyn_into().unwrap();
-            let chart_rect = chart_html.get_bounding_client_rect();
-            let chart_inner_width = chart_html.client_width() as f64;
-            let border_left = (chart_rect.width() - chart_inner_width) / 2.0;
-
-            let click_x = (e.client_x() as f64 - chart_rect.left() - border_left).clamp(0.0, chart_inner_width);
-            let translate_x = get_current_translate_x(&track_id);
-            let target_track_x = click_x + translate_x;
-
+            let Some(target_track_x) = pointer_track_position(&chart_id, &track_id, mouse_event)
+            else {
+                return;
+            };
             scroll_to_track_position(&container_id, &track_id, target_track_x);
-        });
-
-        chart
-            .add_event_listener_with_callback("click", click_cb.as_ref().unchecked_ref())
-            .unwrap();
-        click_cb.forget();
+        }));
     }
 
-    // Drag handlers — mousedown starts drag, mousemove updates, mouseup ends
     {
         let is_dragging_down = is_dragging.clone();
-        let mousedown_cb = Closure::<dyn FnMut(web_sys::MouseEvent)>::new(move |_e: web_sys::MouseEvent| {
-            *is_dragging_down.borrow_mut() = true;
-        });
-        chart
-            .add_event_listener_with_callback("mousedown", mousedown_cb.as_ref().unchecked_ref())
-            .unwrap();
-        mousedown_cb.forget();
+        listeners.extend(EventListener::new(
+            chart.as_ref(),
+            "mousedown",
+            move |_event| {
+                *is_dragging_down.borrow_mut() = true;
+            },
+        ));
     }
 
     {
         let is_dragging_up = is_dragging.clone();
-        let mouseup_cb = Closure::<dyn FnMut(web_sys::MouseEvent)>::new(move |_e: web_sys::MouseEvent| {
-            *is_dragging_up.borrow_mut() = false;
-        });
-        web_sys::window()
-            .unwrap()
-            .add_event_listener_with_callback("mouseup", mouseup_cb.as_ref().unchecked_ref())
-            .unwrap();
-        mouseup_cb.forget();
+        listeners.extend(EventListener::new(
+            window.as_ref(),
+            "mouseup",
+            move |_event| {
+                *is_dragging_up.borrow_mut() = false;
+            },
+        ));
     }
 
     {
         let is_dragging_move = is_dragging;
         let container_id = container_id.clone();
         let track_id = track_id.clone();
-        let chart_id_str = chart_id.to_string();
+        let chart_id = chart_id.clone();
 
-        let mousemove_cb = Closure::<dyn FnMut(web_sys::MouseEvent)>::new(move |e: web_sys::MouseEvent| {
-            if !*is_dragging_move.borrow() {
-                return;
-            }
-            let document = web_sys::window().unwrap().document().unwrap();
-            let chart = match document.get_element_by_id(&chart_id_str) {
-                Some(el) => el,
-                None => return,
-            };
-            let chart_html: web_sys::HtmlElement = chart.dyn_into().unwrap();
-            let chart_rect = chart_html.get_bounding_client_rect();
-            let chart_inner_width = chart_html.client_width() as f64;
-            let border_left = (chart_rect.width() - chart_inner_width) / 2.0;
-
-            let click_x = (e.client_x() as f64 - chart_rect.left() - border_left).clamp(0.0, chart_inner_width);
-            let translate_x = get_current_translate_x(&track_id);
-            let target_track_x = click_x + translate_x;
-
-            // Use instant scroll for dragging (no smooth animation lag)
-            let window = web_sys::window().unwrap();
-            let container = match document.get_element_by_id(&container_id) {
-                Some(el) => el,
-                None => return,
-            };
-            let track = match document.get_element_by_id(&track_id) {
-                Some(el) => el,
-                None => return,
-            };
-            let cursor = match document.get_element_by_id("timeline-cursor") {
-                Some(el) => el,
-                None => return,
-            };
-
-            let track_el: web_sys::HtmlElement = track.dyn_into().unwrap();
-            let track_width = track_el.scroll_width() as f64;
-            let cursor_el: web_sys::HtmlElement = cursor.dyn_into().unwrap();
-            let chart2 = cursor_el.parent_element().unwrap();
-            let chart2_html: web_sys::HtmlElement = chart2.dyn_into().unwrap();
-            let ciw = chart2_html.client_width() as f64;
-
-            let max_translate = (track_width - ciw).max(0.0);
-            let half_chart = ciw / 2.0;
-            let total_virtual = half_chart + max_translate + half_chart;
-            let desired_virtual = target_track_x.clamp(0.0, total_virtual);
-            let desired_progress = desired_virtual / total_virtual;
-
-            let container_rect = container.get_bounding_client_rect();
-            let container_height = container_rect.height();
-            let viewport_height = window.inner_height().unwrap().as_f64().unwrap();
-            if container_height <= viewport_height { return; }
-
-            let container_offset_top = container_rect.top() + window.scroll_y().unwrap_or(0.0);
-            let target_scroll = container_offset_top + desired_progress * (container_height - viewport_height);
-
-            let opts = web_sys::ScrollToOptions::new();
-            opts.set_top(target_scroll);
-            opts.set_behavior(web_sys::ScrollBehavior::Instant);
-            window.scroll_to_with_scroll_to_options(&opts);
-        });
-
-        web_sys::window()
-            .unwrap()
-            .add_event_listener_with_callback("mousemove", mousemove_cb.as_ref().unchecked_ref())
-            .unwrap();
-        mousemove_cb.forget();
+        listeners.extend(EventListener::new(
+            window.as_ref(),
+            "mousemove",
+            move |event| {
+                if !*is_dragging_move.borrow() {
+                    return;
+                }
+                let Some(mouse_event) = event.dyn_ref::<web_sys::MouseEvent>() else {
+                    return;
+                };
+                let Some(target_track_x) =
+                    pointer_track_position(&chart_id, &track_id, mouse_event)
+                else {
+                    return;
+                };
+                drag_to_track_position(&container_id, &track_id, target_track_x);
+            },
+        ));
     }
+
+    listeners
+}
+
+fn pointer_track_position(
+    chart_id: &str,
+    track_id: &str,
+    event: &web_sys::MouseEvent,
+) -> Option<f64> {
+    let document = web_sys::window()?.document()?;
+    let chart_html = document
+        .get_element_by_id(chart_id)?
+        .dyn_into::<web_sys::HtmlElement>()
+        .ok()?;
+
+    let chart_rect = chart_html.get_bounding_client_rect();
+    let chart_inner_width = chart_html.client_width() as f64;
+    let border_left = (chart_rect.width() - chart_inner_width) / 2.0;
+    let pointer_x =
+        (event.client_x() as f64 - chart_rect.left() - border_left).clamp(0.0, chart_inner_width);
+
+    Some(pointer_x + get_current_translate_x(track_id))
+}
+
+fn drag_to_track_position(container_id: &str, track_id: &str, target_track_x: f64) {
+    let Some(target_scroll) = track_scroll_target(container_id, track_id, target_track_x) else {
+        return;
+    };
+    let Some(window) = web_sys::window() else {
+        return;
+    };
+
+    let opts = web_sys::ScrollToOptions::new();
+    opts.set_top(target_scroll);
+    opts.set_behavior(web_sys::ScrollBehavior::Instant);
+    window.scroll_to_with_scroll_to_options(&opts);
 }

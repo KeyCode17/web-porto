@@ -1,6 +1,7 @@
+use super::{AnimationFrameLoop, start_animation_loop};
+use crate::utils::EventListener;
 use std::cell::RefCell;
 use std::rc::Rc;
-use wasm_bindgen::prelude::*;
 use wasm_bindgen::JsCast;
 use web_sys::{CanvasRenderingContext2d, HtmlCanvasElement};
 
@@ -48,7 +49,6 @@ fn init_particles(width: f64, height: f64) -> Vec<Particle> {
         .collect()
 }
 
-/// Get the bounding rect of the hero-name element relative to the canvas
 fn get_text_rect() -> Option<TextRect> {
     let document = web_sys::window()?.document()?;
     let el = document.get_element_by_id("hero-name")?;
@@ -57,13 +57,11 @@ fn get_text_rect() -> Option<TextRect> {
     let text_rect = el.get_bounding_client_rect();
     let canvas_rect = canvas.get_bounding_client_rect();
 
-    // Convert to canvas-relative coordinates
     let left = text_rect.left() - canvas_rect.left();
     let top = text_rect.top() - canvas_rect.top();
     let right = text_rect.right() - canvas_rect.left();
     let bottom = text_rect.bottom() - canvas_rect.top();
 
-    // Add padding around text for repulsion zone
     let pad = 20.0;
     Some(TextRect {
         left: left - pad,
@@ -75,9 +73,7 @@ fn get_text_rect() -> Option<TextRect> {
     })
 }
 
-/// Push particle out of text rect with gentle repulsion
 fn repel_from_text(p: &mut Particle, tr: &TextRect) {
-    // Find nearest point on rect to particle
     let nearest_x = p.x.clamp(tr.left, tr.right);
     let nearest_y = p.y.clamp(tr.top, tr.bottom);
     let dx = p.x - nearest_x;
@@ -85,7 +81,6 @@ fn repel_from_text(p: &mut Particle, tr: &TextRect) {
     let dist = (dx * dx + dy * dy).sqrt();
 
     if dist < 0.1 {
-        // Inside the rect — nudge outward from center
         let cx = (tr.left + tr.right) / 2.0;
         let cy = (tr.top + tr.bottom) / 2.0;
         let to_cx = p.x - cx;
@@ -94,7 +89,6 @@ fn repel_from_text(p: &mut Particle, tr: &TextRect) {
         p.vx += (to_cx / d) * 0.15;
         p.vy += (to_cy / d) * 0.15;
     } else {
-        // Outside but near — very soft repulsion
         let repel_range = 25.0;
         if dist < repel_range {
             let force = (1.0 - dist / repel_range) * 0.1;
@@ -113,91 +107,75 @@ fn clamp_velocity(p: &mut Particle) {
     }
 }
 
-fn request_animation_frame(f: &Closure<dyn FnMut()>) {
-    web_sys::window()
-        .unwrap()
-        .request_animation_frame(f.as_ref().unchecked_ref())
-        .expect("should register requestAnimationFrame");
+pub struct ParticleField {
+    _frames: AnimationFrameLoop,
+    _resize: Option<EventListener>,
 }
 
-pub fn start_particles(canvas_id: &str) {
-    let window = web_sys::window().unwrap();
-    let document = window.document().unwrap();
+fn viewport_size() -> Option<(f64, f64)> {
+    let window = web_sys::window()?;
+    let width = window.inner_width().ok()?.as_f64()?;
+    let height = window.inner_height().ok()?.as_f64()?;
+    Some((width, height))
+}
 
-    let canvas = match document.get_element_by_id(canvas_id) {
-        Some(el) => el,
-        None => return,
-    };
-    let canvas: HtmlCanvasElement = match canvas.dyn_into() {
-        Ok(c) => c,
-        Err(_) => return,
-    };
+pub fn start_particles(canvas_id: &str) -> Option<ParticleField> {
+    let document = web_sys::window()?.document()?;
 
-    let width = window.inner_width().unwrap().as_f64().unwrap();
-    let height = window.inner_height().unwrap().as_f64().unwrap();
+    let canvas = document
+        .get_element_by_id(canvas_id)?
+        .dyn_into::<HtmlCanvasElement>()
+        .ok()?;
+
+    let (width, height) = viewport_size()?;
     canvas.set_width(width as u32);
     canvas.set_height(height as u32);
 
-    let ctx: CanvasRenderingContext2d = canvas
+    let ctx = canvas
         .get_context("2d")
-        .unwrap()
-        .unwrap()
-        .dyn_into()
-        .unwrap();
+        .ok()??
+        .dyn_into::<CanvasRenderingContext2d>()
+        .ok()?;
 
     let particles = Rc::new(RefCell::new(init_particles(width, height)));
     let canvas_rc = Rc::new(canvas);
     let ctx_rc = Rc::new(ctx);
 
-    // Handle window resize
-    {
+    let resize = {
         let canvas_clone = canvas_rc.clone();
-        let resize_cb = Closure::<dyn FnMut()>::new(move || {
-            let w = web_sys::window().unwrap();
-            let new_w = w.inner_width().unwrap().as_f64().unwrap();
-            let new_h = w.inner_height().unwrap().as_f64().unwrap();
-            canvas_clone.set_width(new_w as u32);
-            canvas_clone.set_height(new_h as u32);
-        });
-        window
-            .add_event_listener_with_callback("resize", resize_cb.as_ref().unchecked_ref())
-            .unwrap();
-        resize_cb.forget();
-    }
-
-    // Animation loop
-    let f: Rc<RefCell<Option<Closure<dyn FnMut()>>>> = Rc::new(RefCell::new(None));
-    let g = f.clone();
+        web_sys::window().and_then(|window| {
+            EventListener::new(window.as_ref(), "resize", move |_| {
+                if let Some((new_width, new_height)) = viewport_size() {
+                    canvas_clone.set_width(new_width as u32);
+                    canvas_clone.set_height(new_height as u32);
+                }
+            })
+        })
+    };
 
     let canvas_for_loop = canvas_rc.clone();
     let ctx_for_loop = ctx_rc.clone();
 
-    *g.borrow_mut() = Some(Closure::new(move || {
+    let frames = start_animation_loop(move || {
         let w = canvas_for_loop.width() as f64;
         let h = canvas_for_loop.height() as f64;
 
-        // Clear
         ctx_for_loop.clear_rect(0.0, 0.0, w, h);
 
         let mut parts = particles.borrow_mut();
 
-        // Get current text rect (changes as text zooms)
         let text_rect = get_text_rect();
 
-        // Update positions
         for p in parts.iter_mut() {
             p.x += p.vx;
             p.y += p.vy;
 
-            // Repel from text
             if let Some(ref tr) = text_rect {
                 repel_from_text(p, tr);
             }
 
-            // Clamp velocity so particles never go crazy
             clamp_velocity(p);
 
-            // Bounce off walls
             if p.x <= 0.0 || p.x >= w {
                 p.vx = -p.vx;
                 p.x = p.x.clamp(0.0, w);
@@ -208,7 +186,6 @@ pub fn start_particles(canvas_id: &str) {
             }
         }
 
-        // Draw connections
         let len = parts.len();
         for i in 0..len {
             for j in (i + 1)..len {
@@ -228,19 +205,16 @@ pub fn start_particles(canvas_id: &str) {
             }
         }
 
-        // Draw particles
         for p in parts.iter() {
             ctx_for_loop.set_fill_style_str(p.color);
             ctx_for_loop.begin_path();
-            ctx_for_loop
-                .arc(p.x, p.y, p.radius, 0.0, std::f64::consts::TAU)
-                .unwrap();
+            let _ = ctx_for_loop.arc(p.x, p.y, p.radius, 0.0, std::f64::consts::TAU);
             ctx_for_loop.fill();
         }
+    })?;
 
-        // Request next frame
-        request_animation_frame(f.borrow().as_ref().unwrap());
-    }));
-
-    request_animation_frame(g.borrow().as_ref().unwrap());
+    Some(ParticleField {
+        _frames: frames,
+        _resize: resize,
+    })
 }

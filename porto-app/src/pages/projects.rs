@@ -1,23 +1,23 @@
-use dioxus::prelude::*;
-use wasm_bindgen::prelude::*;
-use wasm_bindgen::JsCast;
 use crate::data;
 use crate::styles::theme;
+use crate::utils::{on_escape, sleep_ms};
+use dioxus::prelude::*;
+use std::rc::Rc;
 
-/// Suit defines everything: symbol, suit color, card background
-/// Shuffled suit order for 9 cards
+const PHASE_SHUFFLE_DELAY_MS: i32 = 200;
+const PHASE_DEAL_DELAY_MS: i32 = 600;
+const PHASE_READY_DELAY_MS: i32 = 2000;
+
 const CARD_DEALS: &[(&str, &str, &str)] = &[
-    // (suit, suit_color, bg_color)
-    // ♠=orange, ♦=teal, ♣=crimson, ♥=navy
-    ("\u{2660}", "#E5E5E5", "#D65108"), // ♠ orange
-    ("\u{2666}", "#E84040", "#568EA3"), // ♦ teal
-    ("\u{2665}", "#E84040", "#02182B"), // ♥ navy
-    ("\u{2663}", "#E5E5E5", "#8B1A1A"), // ♣ crimson
-    ("\u{2666}", "#E84040", "#568EA3"), // ♦ teal
-    ("\u{2660}", "#E5E5E5", "#D65108"), // ♠ orange
-    ("\u{2665}", "#E84040", "#02182B"), // ♥ navy
-    ("\u{2660}", "#E5E5E5", "#D65108"), // ♠ orange
-    ("\u{2665}", "#E84040", "#02182B"), // ♥ navy
+    ("\u{2660}", "#E5E5E5", "#D65108"),
+    ("\u{2666}", "#E84040", "#568EA3"),
+    ("\u{2665}", "#E84040", "#02182B"),
+    ("\u{2663}", "#E5E5E5", "#8B1A1A"),
+    ("\u{2666}", "#E84040", "#568EA3"),
+    ("\u{2660}", "#E5E5E5", "#D65108"),
+    ("\u{2665}", "#E84040", "#02182B"),
+    ("\u{2660}", "#E5E5E5", "#D65108"),
+    ("\u{2665}", "#E84040", "#02182B"),
 ];
 
 fn card_deal(index: usize) -> (&'static str, &'static str, &'static str) {
@@ -43,59 +43,16 @@ pub fn Projects() -> Element {
     let total = projects.len();
     let mut mobile_idx = use_signal(move || total - 1);
 
-    use_effect(move || {
-        let window = web_sys::window().unwrap();
-        let document = window.document().unwrap();
-
-        // Phase 1: shuffle at 200ms
-        let cb1 = Closure::<dyn FnMut()>::new(move || {
-            phase.set(1);
-        });
-        window
-            .set_timeout_with_callback_and_timeout_and_arguments_0(
-                cb1.as_ref().unchecked_ref(),
-                200,
-            )
-            .unwrap();
-        cb1.forget();
-
-        // Phase 2: dealing at 800ms
-        let cb2 = Closure::<dyn FnMut()>::new(move || {
-            phase.set(2);
-        });
-        window
-            .set_timeout_with_callback_and_timeout_and_arguments_0(
-                cb2.as_ref().unchecked_ref(),
-                800,
-            )
-            .unwrap();
-        cb2.forget();
-
-        // Phase 3: dealt & ready (after deal animation finishes ~800 + 9*150 + 600 = 2750ms)
-        let cb3 = Closure::<dyn FnMut()>::new(move || {
-            phase.set(3);
-        });
-        window
-            .set_timeout_with_callback_and_timeout_and_arguments_0(
-                cb3.as_ref().unchecked_ref(),
-                2800,
-            )
-            .unwrap();
-        cb3.forget();
-
-        // Escape key listener
-        let cb_key = Closure::<dyn FnMut(web_sys::KeyboardEvent)>::new(
-            move |e: web_sys::KeyboardEvent| {
-                if e.key() == "Escape" {
-                    expanded.set(None);
-                }
-            },
-        );
-        document
-            .add_event_listener_with_callback("keydown", cb_key.as_ref().unchecked_ref())
-            .unwrap();
-        cb_key.forget();
+    use_future(move || async move {
+        sleep_ms(PHASE_SHUFFLE_DELAY_MS).await;
+        phase.set(1);
+        sleep_ms(PHASE_DEAL_DELAY_MS).await;
+        phase.set(2);
+        sleep_ms(PHASE_READY_DELAY_MS).await;
+        phase.set(3);
     });
+
+    let _escape_listener = use_hook(|| Rc::new(on_escape(move || expanded.set(None))));
 
     let current_phase = *phase.read();
     let current_expanded = *expanded.read();
@@ -104,7 +61,6 @@ pub fn Projects() -> Element {
 
     rsx! {
         div { style: "padding: 4rem 2rem 1rem; height: 100vh; overflow: hidden; background: {theme::DEEP_NAVY}; position: relative;",
-            // Decorative corner suits (desktop only)
             span { class: "poker-deco", style: "position: absolute; top: 5rem; left: 3rem; font-size: 8rem; opacity: 0.04; color: {theme::MINT_WHITE}; pointer-events: none; user-select: none;", "\u{2660}" }
             span { class: "poker-deco", style: "position: absolute; top: 4rem; right: 4rem; font-size: 6rem; opacity: 0.04; color: {theme::MINT_WHITE}; pointer-events: none; user-select: none;", "\u{2665}" }
             span { class: "poker-deco", style: "position: absolute; bottom: 8rem; left: 8rem; font-size: 10rem; opacity: 0.03; color: {theme::MINT_WHITE}; pointer-events: none; user-select: none;", "\u{2666}" }
@@ -176,13 +132,11 @@ pub fn Projects() -> Element {
                 }
             }
 
-            // Mobile: swipeable card stack
             div { class: "poker-stack",
                 {
                     let current_mobile = *mobile_idx.read();
                     let total = projects.len();
                     rsx! {
-                        // Counter
                         p {
                             style: "font-family: {theme::FONT_MONO}; font-size: 0.8rem; color: {theme::MUTED_TEAL}; text-align: center; margin-bottom: 0.8rem;",
                             "{current_mobile + 1} / {total}"
@@ -221,7 +175,6 @@ pub fn Projects() -> Element {
                                 }
                             }
                         }
-                        // Navigation arrows
                         div { style: "display: flex; justify-content: center; gap: 2rem; margin-top: 1rem;",
                             button {
                                 class: "poker-stack-nav",

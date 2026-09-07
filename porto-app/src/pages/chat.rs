@@ -1,19 +1,23 @@
-use dioxus::prelude::*;
-use wasm_bindgen::prelude::*;
-use wasm_bindgen_futures::JsFuture;
 use crate::data::load_faq;
 use crate::faq_engine::FaqEngine;
 use crate::styles::theme;
+use crate::utils::sleep_ms;
+use dioxus::prelude::*;
+use wasm_bindgen::prelude::*;
+use wasm_bindgen_futures::JsFuture;
 
-/// Inject the EmbeddingEngine JS into the page (runs once)
 fn inject_embedding_engine() {
-    let window = web_sys::window().unwrap();
-    if let Ok(val) = js_sys::Reflect::get(&window, &"EmbeddingEngine".into()) {
-        if !val.is_undefined() && !val.is_null() {
-            return;
-        }
+    let Some(window) = web_sys::window() else {
+        return;
+    };
+    if let Ok(val) = js_sys::Reflect::get(&window, &"EmbeddingEngine".into())
+        && !val.is_undefined()
+        && !val.is_null()
+    {
+        return;
     }
-    let result = js_sys::eval(r#"
+    let result = js_sys::eval(
+        r#"
         (function() {
             let pipeline = null;
             let ready = false;
@@ -46,9 +50,12 @@ fn inject_embedding_engine() {
                 },
             };
         })();
-    "#);
+    "#,
+    );
     if let Err(e) = result {
-        web_sys::console::error_1(&format!("[Rust] Failed to inject EmbeddingEngine: {:?}", e).into());
+        web_sys::console::error_1(
+            &format!("[Rust] Failed to inject EmbeddingEngine: {:?}", e).into(),
+        );
     }
 }
 
@@ -62,8 +69,8 @@ fn get_embedding_engine() -> Option<js_sys::Object> {
 }
 
 fn call_load_model() -> Result<js_sys::Promise, JsValue> {
-    let engine = get_embedding_engine()
-        .ok_or_else(|| JsValue::from_str("EmbeddingEngine not found"))?;
+    let engine =
+        get_embedding_engine().ok_or_else(|| JsValue::from_str("EmbeddingEngine not found"))?;
     let func = js_sys::Reflect::get(&engine, &"loadModel".into())?;
     let func = js_sys::Function::from(func);
     let result = func.call0(&engine)?;
@@ -71,34 +78,23 @@ fn call_load_model() -> Result<js_sys::Promise, JsValue> {
 }
 
 fn call_embed(text: &str) -> Result<js_sys::Promise, JsValue> {
-    let engine = get_embedding_engine()
-        .ok_or_else(|| JsValue::from_str("EmbeddingEngine not found"))?;
+    let engine =
+        get_embedding_engine().ok_or_else(|| JsValue::from_str("EmbeddingEngine not found"))?;
     let func = js_sys::Reflect::get(&engine, &"embed".into())?;
     let func = js_sys::Function::from(func);
     let result = func.call1(&engine, &JsValue::from_str(text))?;
     Ok(js_sys::Promise::from(result))
 }
 
-/// Sleep for given milliseconds (WASM-compatible)
-async fn sleep_ms(ms: i32) {
-    let promise = js_sys::Promise::new(&mut |resolve, _| {
-        web_sys::window()
-            .unwrap()
-            .set_timeout_with_callback_and_timeout_and_arguments_0(&resolve, ms)
-            .unwrap();
-    });
-    let _ = JsFuture::from(promise).await;
-}
-
 #[component]
 pub fn Chat() -> Element {
-    use_hook(|| inject_embedding_engine());
+    use_hook(inject_embedding_engine);
 
-    let mut messages: Signal<Vec<(String, String)>> = use_signal(|| vec![]);
-    let mut input = use_signal(|| String::new());
+    let mut messages: Signal<Vec<(String, String)>> = use_signal(Vec::new);
+    let mut input = use_signal(String::new);
     let mut engine: Signal<FaqEngine> = use_signal(|| FaqEngine::new(load_faq()));
-    let mut model_loaded = use_signal(|| false); // actual download done
-    let mut model_ready = use_signal(|| false);  // progress animation done, show chat
+    let mut model_loaded = use_signal(|| false);
+    let mut model_ready = use_signal(|| false);
     let mut model_loading = use_signal(|| false);
     let mut model_error = use_signal(|| false);
     let mut sending = use_signal(|| false);
@@ -112,23 +108,17 @@ pub fn Chat() -> Element {
         model_error.set(false);
         progress.set(0.0);
 
-        // Spawn actual model loading
         spawn(async move {
             match call_load_model() {
-                Ok(promise) => {
-                    match JsFuture::from(promise).await {
-                        Ok(_) => {
-                            model_loaded.set(true);
-                            // Don't set model_loading=false here!
-                            // The progress animation task will set model_ready
-                            // which transitions the UI to the chat view.
-                        }
-                        Err(_) => {
-                            model_error.set(true);
-                            model_loading.set(false);
-                        }
+                Ok(promise) => match JsFuture::from(promise).await {
+                    Ok(_) => {
+                        model_loaded.set(true);
                     }
-                }
+                    Err(_) => {
+                        model_error.set(true);
+                        model_loading.set(false);
+                    }
+                },
                 Err(_) => {
                     model_error.set(true);
                     model_loading.set(false);
@@ -136,7 +126,6 @@ pub fn Chat() -> Element {
             }
         });
 
-        // Spawn fake progress animation
         spawn(async move {
             loop {
                 let current = *progress.read();
@@ -148,30 +137,25 @@ pub fn Chat() -> Element {
                 }
 
                 if done {
-                    // Smooth finish to 100%
                     if current < 100.0 {
                         let step = ((100.0 - current) * 0.08).max(0.3);
                         progress.set((current + step).min(100.0));
                         sleep_ms(30).await;
                     } else {
-                        // Brief pause at 100% before showing chat
                         sleep_ms(400).await;
                         model_loading.set(false);
                         model_ready.set(true);
                         break;
                     }
                 } else if current < 85.0 {
-                    // Normal pace: 0-85%
                     let step = 0.4 + (0.3 * (1.0 - current / 85.0));
                     progress.set(current + step);
                     sleep_ms(50).await;
                 } else if current < 99.0 {
-                    // Slow crawl: 85-99%
                     let step = 0.05 + (0.1 * (1.0 - (current - 85.0) / 14.0));
                     progress.set(current + step);
                     sleep_ms(200).await;
                 } else {
-                    // Stuck at 99%, just wait
                     sleep_ms(100).await;
                 }
             }
@@ -194,7 +178,8 @@ pub fn Chat() -> Element {
                         let json = val.as_string().unwrap_or_default();
                         let embedding: Vec<f32> = serde_json::from_str(&json).unwrap_or_default();
                         if !embedding.is_empty() {
-                            let answer = engine.with_mut(|e| e.query_with_embedding(&msg, &embedding));
+                            let answer =
+                                engine.with_mut(|e| e.query_with_embedding(&msg, &embedding));
                             messages.push(("AI".to_string(), answer));
                         } else {
                             let answer = engine.with_mut(|e| e.query(&msg));
@@ -232,7 +217,6 @@ pub fn Chat() -> Element {
                     "Ask me anything about Karyudi. Powered by AI, runs entirely in your browser. English only."
                 }
 
-                // Gate: must download model first
                 if !is_ready {
                     div {
                         style: "border: 3px solid {theme::DEEP_NAVY}; min-height: 400px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 2rem; margin-bottom: 1rem;",
@@ -245,7 +229,6 @@ pub fn Chat() -> Element {
                                 style: "font-family: {theme::FONT_MONO}; font-size: 0.85rem; color: {theme::MUTED_TEAL}; margin-bottom: 1.5rem;",
                                 "Loading AI model..."
                             }
-                            // Progress bar
                             div {
                                 style: "width: 300px; height: 6px; background: {theme::MUTED_TEAL}; position: relative; overflow: hidden;",
                                 div {
@@ -279,7 +262,6 @@ pub fn Chat() -> Element {
                         }
                     }
                 } else {
-                    // Chat interface (only shown after model loaded)
                     div {
                         style: "border: 3px solid {theme::DEEP_NAVY}; min-height: 400px; max-height: 60vh; overflow-y: auto; padding: 1rem; margin-bottom: 1rem;",
                         if messages.read().is_empty() {

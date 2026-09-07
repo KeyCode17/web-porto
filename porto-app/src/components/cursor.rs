@@ -1,6 +1,13 @@
+use crate::utils::EventListener;
 use dioxus::prelude::*;
-use wasm_bindgen::prelude::*;
+use std::rc::Rc;
 use wasm_bindgen::JsCast;
+
+const HERO_OVERLAY_ID: &str = "hero-bg-overlay";
+const DARK_SECTION_IDS: &[&str] = &["contact", "experience"];
+const OVERLAY_VISIBLE_THRESHOLD: f64 = 0.5;
+const CURSOR_COLOR_ON_DARK: &str = "#00E676";
+const CURSOR_COLOR_ON_LIGHT: &str = "#00C853";
 
 fn is_on_dark_bg(cx: f64, cy: f64) -> bool {
     let document = match web_sys::window().and_then(|w| w.document()) {
@@ -8,9 +15,7 @@ fn is_on_dark_bg(cx: f64, cy: f64) -> bool {
         None => return false,
     };
 
-    // Check known dark sections by their bounding rects
-    let dark_ids = ["contact", "experience"];
-    for id in &dark_ids {
+    for id in DARK_SECTION_IDS {
         if let Some(el) = document.get_element_by_id(id) {
             let rect = el.get_bounding_client_rect();
             if cy >= rect.top() && cy <= rect.bottom() && cx >= rect.left() && cx <= rect.right() {
@@ -19,24 +24,21 @@ fn is_on_dark_bg(cx: f64, cy: f64) -> bool {
         }
     }
 
-    // Check the about overlay (visible when opacity > 0)
-    if let Some(overlay) = document.get_element_by_id("hero-bg-overlay") {
-        if let Ok(html) = overlay.dyn_into::<web_sys::HtmlElement>() {
-            let rect = html.get_bounding_client_rect();
-            if cy >= rect.top() && cy <= rect.bottom() && cx >= rect.left() && cx <= rect.right() {
-                // Check if overlay is actually visible (opacity > 0.5)
-                if let Some(window) = web_sys::window() {
-                    if let Some(computed) = window.get_computed_style(&html).ok().flatten() {
-                        if let Ok(opacity_str) = computed.get_property_value("opacity") {
-                            if let Ok(opacity) = opacity_str.parse::<f64>() {
-                                if opacity > 0.5 {
-                                    return true;
-                                }
-                            }
-                        }
-                    }
-                }
-            }
+    if let Some(overlay) = document.get_element_by_id(HERO_OVERLAY_ID)
+        && let Ok(html) = overlay.dyn_into::<web_sys::HtmlElement>()
+    {
+        let rect = html.get_bounding_client_rect();
+        if cy >= rect.top()
+            && cy <= rect.bottom()
+            && cx >= rect.left()
+            && cx <= rect.right()
+            && let Some(window) = web_sys::window()
+            && let Some(computed) = window.get_computed_style(&html).ok().flatten()
+            && let Ok(opacity_str) = computed.get_property_value("opacity")
+            && let Ok(opacity) = opacity_str.parse::<f64>()
+            && opacity > OVERLAY_VISIBLE_THRESHOLD
+        {
+            return true;
         }
     }
 
@@ -49,27 +51,31 @@ pub fn CustomCursor() -> Element {
     let mut y = use_signal(|| 0.0f64);
     let mut on_dark = use_signal(|| false);
 
-    use_effect(move || {
-        let window = web_sys::window().unwrap();
-        let document = window.document().unwrap();
-
-        let cb = Closure::<dyn FnMut(web_sys::MouseEvent)>::new(move |e: web_sys::MouseEvent| {
-            let cx = e.client_x() as f64;
-            let cy = e.client_y() as f64;
-            x.set(cx);
-            y.set(cy);
-            on_dark.set(is_on_dark_bg(cx, cy));
-        });
-
-        document
-            .add_event_listener_with_callback("mousemove", cb.as_ref().unchecked_ref())
-            .unwrap();
-        cb.forget();
+    let _cursor_listener = use_hook(|| {
+        Rc::new(
+            web_sys::window()
+                .and_then(|window| window.document())
+                .and_then(|document| {
+                    EventListener::new(document.as_ref(), "mousemove", move |event| {
+                        let Some(mouse_event) = event.dyn_ref::<web_sys::MouseEvent>() else {
+                            return;
+                        };
+                        let cx = mouse_event.client_x() as f64;
+                        let cy = mouse_event.client_y() as f64;
+                        x.set(cx);
+                        y.set(cy);
+                        on_dark.set(is_on_dark_bg(cx, cy));
+                    })
+                }),
+        )
     });
 
     let cx = *x.read();
     let cy = *y.read();
-    let color = if *on_dark.read() { "#00E676" } else { "#00C853" };
+    let color = match *on_dark.read() {
+        true => CURSOR_COLOR_ON_DARK,
+        false => CURSOR_COLOR_ON_LIGHT,
+    };
 
     rsx! {
         div {
