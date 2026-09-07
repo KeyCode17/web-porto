@@ -1,6 +1,6 @@
-use dioxus::prelude::*;
 use crate::Route;
 use crate::styles::theme;
+use dioxus::prelude::*;
 
 #[component]
 pub fn Navbar() -> Element {

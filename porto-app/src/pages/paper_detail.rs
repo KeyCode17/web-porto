@@ -1,7 +1,7 @@
-use dioxus::prelude::*;
+use crate::Route;
 use crate::data;
 use crate::styles::theme;
-use crate::Route;
+use dioxus::prelude::*;
 
 #[component]
 pub fn PaperDetail(slug: String) -> Element {
@@ -37,7 +37,6 @@ pub fn PaperDetail(slug: String) -> Element {
                             style: "font-size: 1rem; color: {theme::DARK_BROWN}; margin-bottom: 1rem;",
                             "{authors_str}"
                         }
-                        // Tags
                         div {
                             style: "display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 2rem;",
                             for tag in paper.tags.iter() {
@@ -47,7 +46,6 @@ pub fn PaperDetail(slug: String) -> Element {
                                 }
                             }
                         }
-                        // Abstract
                         div {
                             style: "border: 3px solid {theme::DEEP_NAVY}; padding: 2rem; margin-bottom: 2rem; background: {theme::DEEP_NAVY};",
                             h3 {
@@ -59,7 +57,6 @@ pub fn PaperDetail(slug: String) -> Element {
                                 "{paper.r#abstract}"
                             }
                         }
-                        // Buttons
                         div {
                             style: "display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 2rem;",
                             if has_url {
@@ -72,7 +69,6 @@ pub fn PaperDetail(slug: String) -> Element {
                                 }
                             }
                         }
-                        // PDF Viewer
                         if has_pdf {
                             div {
                                 style: "border: 3px solid {theme::DEEP_NAVY};",
@@ -94,7 +90,7 @@ pub fn PaperDetail(slug: String) -> Element {
                     }
                 }
             }
-        },
+        }
         None => rsx! {
             div { style: "padding: 6rem 2rem;",
                 h1 { style: "font-size: 3rem; color: {theme::DEEP_NAVY};", "Paper not found" }
@@ -103,6 +99,6 @@ pub fn PaperDetail(slug: String) -> Element {
                     span { style: "color: {theme::MUTED_TEAL};", "← Back to papers" }
                 }
             }
-        }
+        },
     }
 }

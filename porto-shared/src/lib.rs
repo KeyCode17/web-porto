@@ -78,7 +78,6 @@ pub struct ChatConfig {
     pub system_prompt: String,
 }
 
-// Top-level TOML wrappers
 #[derive(Debug, Deserialize)]
 pub struct AboutFile {
     pub about: About,

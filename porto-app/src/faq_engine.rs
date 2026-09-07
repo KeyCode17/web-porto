@@ -1,25 +1,26 @@
 use porto_shared::FaqEntry;
+use std::cmp::Reverse;
 use std::collections::{HashMap, HashSet};
 
 const STOPWORDS: &[&str] = &[
-    "a", "an", "the", "is", "are", "was", "were", "be", "been", "being",
-    "have", "has", "had", "do", "does", "did", "will", "would", "could",
-    "should", "may", "might", "shall", "can", "need", "dare", "ought",
-    "to", "of", "in", "for", "on", "with", "at", "by", "from", "as",
-    "into", "through", "during", "before", "after", "above", "below",
-    "between", "out", "off", "over", "under", "again", "further", "then",
-    "once", "here", "there", "when", "where", "why", "how", "all", "both",
-    "each", "few", "more", "most", "other", "some", "such", "no", "nor",
-    "not", "only", "own", "same", "so", "than", "too", "very", "just",
-    "because", "but", "and", "or", "if", "while", "about", "up", "it",
-    "he", "she", "they", "them", "we", "i", "me", "my", "your",
-    "his", "her", "its", "our", "their", "this", "that", "these", "those",
-    "am", "what",
+    "a", "an", "the", "is", "are", "was", "were", "be", "been", "being", "have", "has", "had",
+    "do", "does", "did", "will", "would", "could", "should", "may", "might", "shall", "can",
+    "need", "dare", "ought", "to", "of", "in", "for", "on", "with", "at", "by", "from", "as",
+    "into", "through", "during", "before", "after", "above", "below", "between", "out", "off",
+    "over", "under", "again", "further", "then", "once", "here", "there", "when", "where", "why",
+    "how", "all", "both", "each", "few", "more", "most", "other", "some", "such", "no", "nor",
+    "not", "only", "own", "same", "so", "than", "too", "very", "just", "because", "but", "and",
+    "or", "if", "while", "about", "up", "it", "he", "she", "they", "them", "we", "i", "me", "my",
+    "your", "his", "her", "its", "our", "their", "this", "that", "these", "those", "am", "what",
 ];
 
-// Varied prefixes to avoid repeating the same response verbatim
 const AFFIRM_PREFIXES: &[&str] = &[
-    "Yes! ", "That's right! ", "Absolutely! ", "Correct! ", "Yep! ", "Indeed! ",
+    "Yes! ",
+    "That's right! ",
+    "Absolutely! ",
+    "Correct! ",
+    "Yep! ",
+    "Indeed! ",
 ];
 
 const FOLLOWUP_PROMPTS: &[&str] = &[
@@ -45,7 +46,6 @@ pub struct FaqEngine {
     doc_vectors: Vec<HashMap<String, f64>>,
     stopwords: HashSet<&'static str>,
     guardrail_msg: String,
-    // Conversation state
     last_faq_idx: Option<usize>,
     last_answer: String,
     turn_count: usize,
@@ -56,7 +56,6 @@ impl FaqEngine {
         let stopwords: HashSet<&'static str> = STOPWORDS.iter().copied().collect();
         let guardrail_msg = "I can only answer questions about Karyudi's portfolio. Try asking about his work, skills, projects, or research!".to_string();
 
-        // Build keyword -> FAQ index map
         let mut keyword_map: HashMap<String, Vec<usize>> = HashMap::new();
         for (i, entry) in entries.iter().enumerate() {
             for kw in &entry.keywords {
@@ -64,7 +63,6 @@ impl FaqEngine {
             }
         }
 
-        // Each FAQ's questions + keywords form one document
         let docs: Vec<Vec<String>> = entries
             .iter()
             .map(|e| {
@@ -75,7 +73,6 @@ impl FaqEngine {
 
         let n = docs.len() as f64;
 
-        // Document frequency per term
         let mut df: HashMap<String, usize> = HashMap::new();
         for doc in &docs {
             let unique: HashSet<&String> = doc.iter().collect();
@@ -84,13 +81,11 @@ impl FaqEngine {
             }
         }
 
-        // IDF: ln(N / df) + 1 (smoothed)
         let idf: HashMap<String, f64> = df
             .iter()
             .map(|(term, &count)| (term.clone(), (n / count as f64).ln() + 1.0))
             .collect();
 
-        // Pre-compute TF-IDF vector per document
         let doc_vectors: Vec<HashMap<String, f64>> = docs
             .iter()
             .map(|tokens| build_tfidf_vector(tokens, &idf))
@@ -117,30 +112,25 @@ impl FaqEngine {
         options[self.turn_count % options.len()]
     }
 
-    /// Check for explicit conversational patterns (greeting, confirmation, expansion, acknowledgment)
     fn handle_explicit_patterns(&mut self, input: &str) -> Option<String> {
         let lower = input.to_lowercase();
         let trimmed = lower.trim();
 
-        // Greeting: "hi", "hello", "hai", "hallo", "hey"
         if is_greeting(trimmed) {
             return Some(self.pick_prefix(GREETING_RESPONSES).to_string());
         }
 
         let last_idx = self.last_faq_idx?;
 
-        // Confirmation: "are you sure?", "really?", "seriously?", "for real?"
         if is_confirmation(trimmed) {
             let prefix = self.pick_prefix(AFFIRM_PREFIXES);
             return Some(format!("{}{}", prefix, self.entries[last_idx].answer));
         }
 
-        // Expansion: "tell me more", "more details", "elaborate", "go on"
         if is_expansion(trimmed) {
             return Some(self.expand_from(last_idx));
         }
 
-        // Acknowledgment: "ok", "okay", "got it", "i see", "alright", "cool"
         if is_acknowledgment(trimmed) {
             let prompt = self.pick_prefix(FOLLOWUP_PROMPTS);
             return Some(prompt.to_string());
@@ -149,19 +139,13 @@ impl FaqEngine {
         None
     }
 
-    /// Echo follow-up: very short query repeating a word from previous answer
-    /// Only used as fallback when TF-IDF match is weak
     fn try_echo_followup(&self, input: &str) -> Option<String> {
         let lower = input.to_lowercase();
         let trimmed = lower.trim();
         let last_idx = self.last_faq_idx?;
 
-        // Only for very short queries (1-2 words)
         if trimmed.len() < 20 {
-            let words: Vec<&str> = trimmed
-                .split_whitespace()
-                .filter(|w| w.len() > 2)
-                .collect();
+            let words: Vec<&str> = trimmed.split_whitespace().filter(|w| w.len() > 2).collect();
             if words.len() <= 2 && !words.is_empty() {
                 let answer_lower = self.last_answer.to_lowercase();
                 let is_echo = words.iter().all(|w| answer_lower.contains(*w));
@@ -175,11 +159,9 @@ impl FaqEngine {
         None
     }
 
-    /// Find related FAQ entries and combine for "tell me more" responses
     fn expand_from(&self, last_idx: usize) -> String {
         let last_keywords: HashSet<&String> = self.entries[last_idx].keywords.iter().collect();
 
-        // Find entries that share keywords with the last one
         let mut related: Vec<(usize, usize)> = self
             .entries
             .iter()
@@ -196,7 +178,7 @@ impl FaqEngine {
             .filter(|(_, overlap)| *overlap > 0)
             .collect();
 
-        related.sort_by(|a, b| b.1.cmp(&a.1));
+        related.sort_by_key(|(_, overlap)| Reverse(*overlap));
 
         if let Some((related_idx, _)) = related.first() {
             format!(
@@ -211,14 +193,13 @@ impl FaqEngine {
         }
     }
 
-    /// Score how many query tokens directly match FAQ keywords
     fn keyword_score(&self, tokens: &[String], faq_idx: usize) -> f64 {
         let mut score = 0.0;
         for token in tokens {
-            if let Some(indices) = self.keyword_map.get(token) {
-                if indices.contains(&faq_idx) {
-                    score += 1.0;
-                }
+            if let Some(indices) = self.keyword_map.get(token)
+                && indices.contains(&faq_idx)
+            {
+                score += 1.0;
             }
             if token.len() > 3 {
                 for kw in &self.entries[faq_idx].keywords {
@@ -234,7 +215,6 @@ impl FaqEngine {
         score
     }
 
-    /// Find the best FAQ match via TF-IDF + keyword scoring
     fn tfidf_match(&self, tokens: &[String]) -> Option<(usize, f64)> {
         let q_vec = build_tfidf_vector(tokens, &self.idf);
 
@@ -261,11 +241,9 @@ impl FaqEngine {
         Some(best)
     }
 
-    /// Build the response, optionally combining close runner-up
     fn build_response(&self, best_idx: usize, tokens: &[String]) -> String {
         let mut result = self.entries[best_idx].answer.clone();
 
-        // Check for second-best match
         let q_vec = build_tfidf_vector(tokens, &self.idf);
         let mut scores: Vec<(usize, f64)> = self
             .doc_vectors
@@ -289,7 +267,6 @@ impl FaqEngine {
             }
         }
 
-        // If this is the same topic as last time, add a varied prefix
         if self.last_faq_idx == Some(best_idx) {
             let prefix = self.pick_prefix(AFFIRM_PREFIXES);
             result = format!("{}{}", prefix, result);
@@ -298,16 +275,13 @@ impl FaqEngine {
         result
     }
 
-    /// Semantic query: uses embedding similarity when model is loaded
     pub fn query_with_embedding(&mut self, user_input: &str, query_embedding: &[f32]) -> String {
         self.turn_count += 1;
 
-        // 1. Check explicit conversational patterns first
         if let Some(response) = self.handle_explicit_patterns(user_input) {
             return response;
         }
 
-        // 2. Compute semantic similarity against all FAQ embeddings
         let mut scores: Vec<(usize, f32)> = self
             .entries
             .iter()
@@ -320,7 +294,6 @@ impl FaqEngine {
 
         if let Some(&(best_idx, best_score)) = scores.first() {
             if best_score < 0.45 {
-                // Low similarity — not a relevant question
                 if let Some(echo) = self.try_echo_followup(user_input) {
                     return echo;
                 }
@@ -331,7 +304,6 @@ impl FaqEngine {
 
             let mut result = self.entries[best_idx].answer.clone();
 
-            // Combine close runner-up if very close to best (within 95%)
             if scores.len() > 1 {
                 let second = scores[1];
                 if second.1 > 0.45 && second.1 >= best_score * 0.95 {
@@ -340,7 +312,6 @@ impl FaqEngine {
                 }
             }
 
-            // Varied prefix for repeat topics
             if self.last_faq_idx == Some(best_idx) {
                 let prefix = self.pick_prefix(AFFIRM_PREFIXES);
                 result = format!("{}{}", prefix, result);
@@ -350,12 +321,10 @@ impl FaqEngine {
             self.last_answer = result.clone();
             result
         } else {
-            // No embeddings at all — fall back to TF-IDF
             self.query_tfidf(user_input)
         }
     }
 
-    /// TF-IDF fallback query (used when model not loaded)
     fn query_tfidf(&mut self, user_input: &str) -> String {
         let tokens = self.tokenize(user_input);
         if tokens.is_empty() {
@@ -389,16 +358,13 @@ impl FaqEngine {
         }
     }
 
-    /// Main query method with conversation awareness (TF-IDF only, no embedding)
     pub fn query(&mut self, user_input: &str) -> String {
         self.turn_count += 1;
 
-        // 1. Check explicit conversational patterns first (confirmation, expansion, ack)
         if let Some(response) = self.handle_explicit_patterns(user_input) {
             return response;
         }
 
-        // 2. Try TF-IDF matching
         let tokens = self.tokenize(user_input);
         if tokens.is_empty() {
             return self.guardrail_msg.clone();
@@ -406,25 +372,21 @@ impl FaqEngine {
 
         match self.tfidf_match(&tokens) {
             Some((best_idx, score)) => {
-                // 3. Strong TF-IDF match — use it
                 if score >= 0.1 {
                     let response = self.build_response(best_idx, &tokens);
                     self.last_faq_idx = Some(best_idx);
                     self.last_answer = response.clone();
                     return response;
                 }
-                // 4. Weak TF-IDF match — try echo follow-up first
                 if let Some(echo) = self.try_echo_followup(user_input) {
                     return echo;
                 }
-                // 5. Use the weak match anyway (better than nothing)
                 let response = self.build_response(best_idx, &tokens);
                 self.last_faq_idx = Some(best_idx);
                 self.last_answer = response.clone();
                 response
             }
             None => {
-                // 4b. No TF-IDF match — try echo follow-up
                 if let Some(echo) = self.try_echo_followup(user_input) {
                     return echo;
                 }
@@ -474,28 +436,70 @@ fn is_expansion(input: &str) -> bool {
 
 fn is_greeting(input: &str) -> bool {
     let exact = [
-        "hi", "hello", "hey", "hai", "hallo", "halo", "yo", "sup",
-        "good morning", "good afternoon", "good evening",
-        "hi there", "hello there", "hey there",
-        "whats up", "what's up", "howdy", "greetings",
-        "assalamualaikum", "selamat pagi", "selamat siang", "hola",
+        "hi",
+        "hello",
+        "hey",
+        "hai",
+        "hallo",
+        "halo",
+        "yo",
+        "sup",
+        "good morning",
+        "good afternoon",
+        "good evening",
+        "hi there",
+        "hello there",
+        "hey there",
+        "whats up",
+        "what's up",
+        "howdy",
+        "greetings",
+        "assalamualaikum",
+        "selamat pagi",
+        "selamat siang",
+        "hola",
     ];
-    exact.iter().any(|p| input == *p || input.starts_with(&format!("{} ", p)))
+    exact
+        .iter()
+        .any(|p| input == *p || input.starts_with(&format!("{} ", p)))
 }
 
 fn is_acknowledgment(input: &str) -> bool {
     let exact = [
-        "ok", "okay", "got it", "i see", "alright", "cool", "nice",
-        "interesting", "wow", "great", "good", "noted", "understood",
-        "right", "ah", "ohh", "oh", "ahh", "hmm", "hm",
+        "ok",
+        "okay",
+        "got it",
+        "i see",
+        "alright",
+        "cool",
+        "nice",
+        "interesting",
+        "wow",
+        "great",
+        "good",
+        "noted",
+        "understood",
+        "right",
+        "ah",
+        "ohh",
+        "oh",
+        "ahh",
+        "hmm",
+        "hm",
     ];
-    exact.iter().any(|p| input == *p)
+    exact.contains(&input)
 }
 
 fn tokenize_with(text: &str, stopwords: &HashSet<&str>) -> Vec<String> {
     text.to_lowercase()
         .chars()
-        .map(|c| if c.is_alphanumeric() || c == '-' { c } else { ' ' })
+        .map(|c| {
+            if c.is_alphanumeric() || c == '-' {
+                c
+            } else {
+                ' '
+            }
+        })
         .collect::<String>()
         .split_whitespace()
         .filter(|w| w.len() > 1 && !stopwords.contains(w))
@@ -518,7 +522,6 @@ fn build_tfidf_vector(tokens: &[String], idf: &HashMap<String, f64>) -> HashMap<
         .collect()
 }
 
-/// Cosine similarity for dense f32 vectors (embeddings)
 fn cosine_sim_f32(a: &[f32], b: &[f32]) -> f32 {
     if a.len() != b.len() || a.is_empty() {
         return 0.0;
@@ -533,7 +536,6 @@ fn cosine_sim_f32(a: &[f32], b: &[f32]) -> f32 {
     }
 }
 
-/// Cosine similarity for sparse TF-IDF vectors
 fn cosine_sim(a: &HashMap<String, f64>, b: &HashMap<String, f64>) -> f64 {
     let dot: f64 = a
         .iter()

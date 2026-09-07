@@ -1,2 +1,2 @@
-pub mod theme;
 pub mod global;
+pub mod theme;

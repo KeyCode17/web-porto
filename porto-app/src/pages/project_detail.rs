@@ -1,7 +1,7 @@
-use dioxus::prelude::*;
+use crate::Route;
 use crate::data;
 use crate::styles::theme;
-use crate::Route;
+use dioxus::prelude::*;
 
 #[component]
 pub fn ProjectDetail(slug: String) -> Element {
@@ -12,7 +12,6 @@ pub fn ProjectDetail(slug: String) -> Element {
         Some(project) => rsx! {
             div { style: "padding: 6rem 2rem; min-height: 100vh;",
                 div { style: "max-width: 900px; margin: 0 auto;",
-                    // Back link
                     Link {
                         to: Route::Projects {},
                         span {
@@ -20,17 +19,14 @@ pub fn ProjectDetail(slug: String) -> Element {
                             "← BACK TO PROJECTS"
                         }
                     }
-                    // Category
                     p {
                         style: "font-family: {theme::FONT_MONO}; font-size: 0.9rem; color: {theme::MUTED_TEAL}; text-transform: uppercase; margin-top: 2rem;",
                         "{project.category}"
                     }
-                    // Title
                     h1 {
                         style: "font-size: 4rem; font-weight: 700; color: {theme::DEEP_NAVY}; text-transform: uppercase; margin: 0.5rem 0 2rem;",
                         "{project.title}"
                     }
-                    // Tech stack
                     div {
                         style: "display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 2rem;",
                         for tech in project.tech_stack.iter() {
@@ -40,12 +36,10 @@ pub fn ProjectDetail(slug: String) -> Element {
                             }
                         }
                     }
-                    // Description
                     p {
                         style: "font-size: 1.2rem; line-height: 1.8; color: {theme::DEEP_NAVY}; margin-bottom: 2rem;",
                         "{project.long_description}"
                     }
-                    // Links
                     div {
                         style: "display: flex; gap: 1.5rem;",
                         if !project.repo_url.is_empty() {
@@ -81,6 +75,6 @@ pub fn ProjectDetail(slug: String) -> Element {
                     span { style: "color: {theme::MUTED_TEAL};", "← Back to projects" }
                 }
             }
-        }
+        },
     }
 }
