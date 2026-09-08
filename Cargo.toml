@@ -1,8 +1,8 @@
 [workspace]
 resolver = "3"
 members = [
-    "porto-shared",
-    "porto-app",
+    "apps/shared",
+    "apps/porto-app",
 ]
 
 [workspace.package]

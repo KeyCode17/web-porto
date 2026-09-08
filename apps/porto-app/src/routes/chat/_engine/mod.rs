@@ -1,4 +1,4 @@
-use porto_shared::FaqEntry;
+use shared::FaqEntry;
 use std::cmp::Reverse;
 use std::collections::{HashMap, HashSet};
 

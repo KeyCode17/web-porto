@@ -4,7 +4,7 @@ version.workspace = true
 edition.workspace = true
 
 [dependencies]
-porto-shared = { path = "../porto-shared" }
+shared = { path = "../shared" }
 dioxus = { version = "0.7", features = ["web", "router"] }
 serde.workspace = true
 toml.workspace = true

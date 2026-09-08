@@ -6,7 +6,7 @@ default_platform = "web"
 title = "Daffa Karyudi | AI Software Engineer"
 
 [web.watcher]
-watch_path = ["porto-app", "porto-shared", "content", "public"]
+watch_path = ["apps", "content", "public"]
 
 [web.resource]
 style = []

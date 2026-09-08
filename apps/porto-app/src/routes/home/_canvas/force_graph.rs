@@ -39,7 +39,7 @@ fn category_color(cat: &str) -> &'static str {
 }
 
 fn build_graph(skills_json: &str, width: f64, height: f64) -> Graph {
-    let skills: Vec<porto_shared::Skill> =
+    let skills: Vec<shared::Skill> =
         serde_json::from_str(skills_json).expect("Invalid skills JSON");
 
     let cx = width / 2.0;

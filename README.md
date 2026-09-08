@@ -30,14 +30,18 @@ The ~44MB model is loaded on-demand when the user clicks "Load AI Model".
 ## Project Structure
 
 ```
-├── porto-app/           # Main Dioxus WASM application
-│   └── src/
-│       ├── canvas/      # Interactive canvas animations
-│       ├── components/  # Shared UI components (navbar, cursor)
-│       ├── pages/       # Route pages (home, projects, papers, chat)
-│       └── styles/      # Theme and global styles
-├── porto-shared/        # Shared data types
-│   └── src/
+├── apps/
+│   ├── porto-app/       # Main Dioxus WASM application
+│   │   └── src/
+│   │       ├── routes/  # One folder per route, colocated
+│   │       │            #   home/{_canvas,_components,_constants}
+│   │       │            #   projects/, papers/, chat/{_engine}
+│   │       ├── components/  # Pure UI, no route or domain deps
+│   │       ├── libs/    # Browser plumbing (event guard, sleep, rAF loop)
+│   │       ├── data/    # Content loaders
+│   │       └── styles/  # Theme and global stylesheet
+│   └── shared/          # Shared data types
+│       └── src/
 ├── content/             # TOML content files (about, projects, papers, FAQ)
 ├── public/              # Static assets (photos, papers, models, favicon)
 ├── nix/
