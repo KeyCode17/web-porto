@@ -1,35 +1,35 @@
 [[experience]]
 company = "Perfect10 AI"
-role = "AI Software Engineer"
+role = "Software Engineer (Contract)"
 start_date = "2025-10"
 end_date = ""
-summary = "Leading a squad of 3 engineers building Agentic RAG for SaaS CRM"
-details = "Architected a reusable code boilerplate that reduced project initialization time by 40%, accelerating the development lifecycle for the entire engineering team. Provide technical leadership and mentorship for a squad of 3 engineers, conducting code reviews and guiding architectural decisions to ensure scalability. Architected a high density deployment strategy, successfully running database, object storage, and application layers on a single low spec VPS while maintaining uptime for around 1,000 users. Engineered an Agentic RAG system for a SaaS Customer Service CRM, leveraging LLMs to assist agents with instant answer retrieval, reducing Average Handling Time (AHT) by ~40%."
-tech = ["Python", "TypeScript", "Rust", "Docker", "Next.js", "NestJS", "WebSocket", "Linux Server", "Databases"]
+summary = "Leading a squad of 5 engineers building Agentic RAG for SaaS CRM"
+details = "Architected a reusable code boilerplate that reduced project initialization time by 40%, accelerating the development lifecycle for the entire engineering team. Provide technical leadership and mentorship for a squad of 5 engineers, conducting code reviews and guiding architectural decisions to ensure scalability. Architected a high density deployment strategy, successfully running database, object storage, and application layers on a single low spec VPS while maintaining uptime for around 10,000 users. Engineered an Agentic RAG system for a SaaS Customer Service CRM, leveraging LLMs to assist agents with instant answer retrieval, reducing Average Handling Time (AHT) by ~40%. Built a multi-tenant AI content planner in Rust that extracts a versioned Style DNA per client across six social platforms, using PostgreSQL as both the datastore and the job queue with row-level security for tenant isolation."
+tech = ["Python", "TypeScript", "Rust", "PostgreSQL", "Docker", "Next.js", "NestJS", "WebSocket", "Linux Server"]
+
+[[experience]]
+company = "Strata52"
+role = "Software Engineer (Freelance)"
+start_date = "2026-04"
+end_date = "2026-09"
+summary = "Sole or lead engineer on three client automation platforms"
+details = "Sole or lead engineer on three client automation platforms, owning delivery from spec to production: AI document extraction with ERP purchase-order reconciliation, a seven-app operations suite, and an autonomous invoice retrieval agent. Enforced architecture as CI gates (layer boundaries, file-size limits, generated migrations, pre-commit and pre-push hooks) so structural violations fail the build instead of code review."
+tech = ["TypeScript", "Hono", "oRPC", "Drizzle", "PostgreSQL", "Redis", "BullMQ", "React 19", "TanStack", "Playwright", "Docker"]
 
 [[experience]]
 company = "DOT Indonesia"
 role = "AI Engineer (Contract)"
-start_date = "2026-01"
-end_date = ""
-summary = "Engineered internal GenAI solution saving 20+ hours/week"
-details = "Engineered an internal Generative AI solution for content creation, saving the marketing team 20+ hours of manual writing work per week."
-tech = ["Python", "LLMs", "Generative AI"]
-
-[[experience]]
-company = "DOT Indonesia"
-role = "AI Engineer (Internship)"
 start_date = "2025-06"
-end_date = "2026-01"
-summary = "Built AI Reviewer that reduced merge request times by 45.1%"
-details = "Built an AI Reviewer that cut merge request duration from 8.7 to 4.8 hours, making teams 45.1% faster across 1,491 cases. This AI Reviewer also delivers reliable, comprehensive code feedback with a false positive rate of only about 20%, balancing speed with review quality. Developed an AI Query Analyzer that detects slow ORM queries and suggests optimizations, reducing query runtimes by around 35% to significantly improve system efficiency."
-tech = ["Prompt Engineering", "TypeScript", "Machine Learning", "LLMs"]
+end_date = "2026-05"
+summary = "GenAI content tooling and an AI Reviewer that made teams 45.1% faster"
+details = "Engineered an internal Generative AI solution for content creation, saving the marketing team 20+ hours of manual writing work per week. Developed an AI Query Analyzer that detects slow ORM queries and suggests optimizations, reducing query runtimes by around 35% to significantly improve system efficiency. Built an AI Reviewer that cut merge request duration from 8.7 to 4.8 hours, making teams 45.1% faster across 1,491 cases, delivering reliable and comprehensive code feedback with a false positive rate of only about 20%, balancing speed with review quality."
+tech = ["Python", "TypeScript", "LLMs", "Prompt Engineering", "Generative AI", "Machine Learning"]
 
 [[experience]]
 company = "Harisenin.com"
-role = "Data Analyst Tutor"
+role = "Associate Lecturer (Contract)"
 start_date = "2025-05"
-end_date = ""
+end_date = "2026-05"
 summary = "Tutoring Python and Data Analytics to 372 students (4.8+ rating)"
 details = "Delivered interactive and clear Python and Data Analytics tutoring sessions, consistently receiving high ratings (average 4.8+ out of 5) for teaching quality and engagement. Designed and facilitated live classes featuring practical use of NumPy and Pandas, resulting in over 90% student participation and positive feedback from 372 students. Adapted lesson pace and materials based on student feedback, ensuring clarity and understanding while managing dense content within limited session time."
 tech = ["Python", "NumPy", "Pandas", "Data Analytics"]

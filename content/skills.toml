@@ -7,14 +7,14 @@ connections = ["PyTorch", "TensorFlow", "LLMs", "NumPy", "Pandas"]
 [[skill]]
 name = "Rust"
 category = "language"
-proficiency = 3
-connections = ["WASM", "Dioxus", "Nix"]
+proficiency = 5
+connections = ["Tokio", "Axum", "WASM", "Dioxus", "SeaORM", "Nix"]
 
 [[skill]]
 name = "TypeScript"
 category = "language"
-proficiency = 4
-connections = ["Node.js"]
+proficiency = 5
+connections = ["Node.js", "Hono", "Drizzle", "React", "TanStack"]
 
 [[skill]]
 name = "SQL"
@@ -109,7 +109,7 @@ connections = ["Rust", "Dioxus"]
 [[skill]]
 name = "Dioxus"
 category = "framework"
-proficiency = 2
+proficiency = 4
 connections = ["Rust", "WASM"]
 
 [[skill]]
@@ -117,3 +117,117 @@ name = "Tableau"
 category = "tool"
 proficiency = 3
 connections = ["SQL", "Python"]
+
+[[skill]]
+name = "Tokio"
+category = "framework"
+proficiency = 4
+connections = ["Rust", "Axum"]
+
+[[skill]]
+name = "Axum"
+category = "framework"
+proficiency = 4
+connections = ["Rust", "Tokio", "PostgreSQL"]
+
+[[skill]]
+name = "SeaORM"
+category = "framework"
+proficiency = 4
+connections = ["Rust", "PostgreSQL", "SQLite"]
+
+[[skill]]
+name = "UniFFI"
+category = "tool"
+proficiency = 3
+connections = ["Rust", "Kotlin"]
+
+[[skill]]
+name = "Kotlin"
+category = "language"
+proficiency = 3
+connections = ["Jetpack Compose", "UniFFI"]
+
+[[skill]]
+name = "Jetpack Compose"
+category = "framework"
+proficiency = 3
+connections = ["Kotlin"]
+
+[[skill]]
+name = "Hono"
+category = "framework"
+proficiency = 4
+connections = ["TypeScript", "oRPC", "Drizzle"]
+
+[[skill]]
+name = "oRPC"
+category = "framework"
+proficiency = 4
+connections = ["TypeScript", "Hono"]
+
+[[skill]]
+name = "Drizzle"
+category = "framework"
+proficiency = 4
+connections = ["TypeScript", "PostgreSQL", "Hono"]
+
+[[skill]]
+name = "React"
+category = "framework"
+proficiency = 4
+connections = ["TypeScript", "TanStack", "Tailwind"]
+
+[[skill]]
+name = "TanStack"
+category = "framework"
+proficiency = 4
+connections = ["React", "TypeScript"]
+
+[[skill]]
+name = "Tailwind"
+category = "tool"
+proficiency = 4
+connections = ["React"]
+
+[[skill]]
+name = "PostgreSQL"
+category = "infra"
+proficiency = 5
+connections = ["SQL", "Drizzle", "SeaORM", "Axum"]
+
+[[skill]]
+name = "SQLite"
+category = "infra"
+proficiency = 4
+connections = ["SQL", "SeaORM"]
+
+[[skill]]
+name = "Redis"
+category = "infra"
+proficiency = 3
+connections = ["BullMQ", "PostgreSQL"]
+
+[[skill]]
+name = "BullMQ"
+category = "tool"
+proficiency = 4
+connections = ["TypeScript", "Redis"]
+
+[[skill]]
+name = "Docker"
+category = "infra"
+proficiency = 4
+connections = ["Linux", "PostgreSQL"]
+
+[[skill]]
+name = "Playwright"
+category = "tool"
+proficiency = 4
+connections = ["TypeScript", "Chrome DevTools Protocol"]
+
+[[skill]]
+name = "Chrome DevTools Protocol"
+category = "tool"
+proficiency = 4
+connections = ["Playwright", "Rust"]

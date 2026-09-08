@@ -1,4 +1,81 @@
 [[project]]
+slug = "leafypuff"
+title = "leafyPuff (Rust + Kotlin)"
+short_description = "Local-first diary that works with no network and no account"
+long_description = "Local-first diary app that works with no network and no account: one hexagonal Rust core shared between an Axum sync API and a Jetpack Compose Android client over UniFFI. Ran a single SeaORM entity model over SQLite on device and PostgreSQL on the server, keeping sync additive so an offline device is never broken by the server."
+tech_stack = ["Rust", "Axum", "SeaORM", "UniFFI", "Kotlin", "Jetpack Compose", "PostgreSQL", "SQLite", "MinIO", "TanStack"]
+category = "systems"
+repo_url = "https://github.com/KeyCode17/leafypuff"
+demo_url = ""
+images = []
+
+[[project]]
+slug = "ap-invoice-contract-signal"
+title = "AP Invoice & Contract Signal Automation"
+short_description = "Three automation products in one monorepo, isolated per PostgreSQL schema"
+long_description = "Sole engineer on three automation products in one monorepo: AI invoice extraction reconciled against Epicor purchase orders, government award lead scoring pushed to HubSpot, and nightly firm scoring. Isolated every product at the database with its own PostgreSQL schema and login role, ending each pipeline at a human approval checkpoint."
+tech_stack = ["TypeScript", "Hono", "oRPC", "Drizzle", "PostgreSQL", "BullMQ", "React 19", "TanStack", "Docker"]
+category = "ai"
+repo_url = ""
+demo_url = ""
+images = []
+
+[[project]]
+slug = "seven-app-operations-suite"
+title = "Seven-App Operations Suite"
+short_description = "Seven single-tenant apps shipping from six shared packages"
+long_description = "Lead contributor across seven single-tenant apps covering AP bill pay with cost-code matching and Sage bill creation, sales reporting, field quoting, bond closeout, license renewal and bid intake. Factored six shared packages (schemas, permissions, design system, money and audit core, logger, migrations) so all seven apps ship from one toolkit."
+tech_stack = ["TypeScript", "Hono", "oRPC", "Drizzle", "PostgreSQL", "Redis", "BullMQ", "React 19", "TanStack", "Tailwind v4"]
+category = "web"
+repo_url = ""
+demo_url = ""
+images = []
+
+[[project]]
+slug = "invoice-fetch-agent"
+title = "Automated Invoice Fetch Agent"
+short_description = "Agent logging into carrier portals with vision-over-DOM and live TOTP"
+long_description = "Sole engineer on an agent that logs into carrier portals with AI vision-over-DOM navigation and live TOTP, validating PDFs and routing failures to an analyst queue. Kept the credential path fail-closed: secrets read at point of use, never logged or persisted, screenshots redacted at credential entry."
+tech_stack = ["TypeScript", "Hono", "oRPC", "Drizzle", "PostgreSQL", "Playwright", "Azure Blob", "React 19", "TanStack"]
+category = "ai"
+repo_url = ""
+demo_url = ""
+images = []
+
+[[project]]
+slug = "px-solver"
+title = "px-solver"
+short_description = "16 Rust crates on crates.io behind a pluggable challenge pipeline"
+long_description = "Rust workspace of 16 library crates published individually to crates.io, built around a pluggable challenge pipeline that routes each request to the handler registered for the protection it detects. Bounded dual-use risk in the design itself: API keys, an explicit per-domain allowlist with reviewed terms of service, and an append-only audit log, with every architectural decision recorded as a numbered ADR."
+tech_stack = ["Rust", "Axum", "Tokio", "chromiumoxide", "Chrome DevTools Protocol"]
+category = "systems"
+repo_url = "https://github.com/KeyCode17/px-solver"
+demo_url = ""
+images = []
+
+[[project]]
+slug = "rust-ai-surfer"
+title = "rust-ai-surfer"
+short_description = "Rust port of browser-use: an LLM-driven browser agent in 25+ crates"
+long_description = "Rust port of browser-use: an LLM-driven browser agent with a plan, step and judge loop, DOM grounding that injects a numbered clickable map into the prompt, and watchdogs for security, popups, crashes and downloads. Split into 25+ crates with physically enforced hexagonal layering, 14 LLM provider adapters, per-user browser context isolation and an SSRF egress policy; published to crates.io with CI and release automation."
+tech_stack = ["Rust", "Tokio", "chromiumoxide", "Chrome DevTools Protocol", "Anthropic", "OpenAI", "Google", "Bedrock"]
+category = "ai"
+repo_url = "https://github.com/KeyCode17/rust-ai-surfer"
+demo_url = ""
+images = []
+
+[[project]]
+slug = "ecommerce-behaviour-engine"
+title = "Algorithm of Customer Behaviour in E-Commerce"
+short_description = "Rust microservice in a 17 MB binary using 5.7 MB of memory"
+long_description = "Engineered a high-performance Rust microservice for analyzing customer behaviour patterns in e-commerce, producing a single 17 MB binary with 5.7 MB memory usage and sub-second boot time. Built an end-to-end automated pipeline covering customer data synchronization, behaviour pattern detection, persona segmentation, AI-powered WhatsApp message generation, and scheduled auto-delivery."
+tech_stack = ["Rust", "Tokio", "Axum", "SQLx", "PostgreSQL", "Docker"]
+category = "systems"
+repo_url = ""
+demo_url = ""
+images = []
+
+[[project]]
 slug = "agentic-rag-crm"
 title = "Agentic RAG for SaaS CRM"
 short_description = "LLM-powered system reducing customer service handling time by ~40%"
@@ -94,5 +171,5 @@ long_description = "A brutalist portfolio website built entirely in Rust using D
 tech_stack = ["Rust", "WASM", "Dioxus", "Nix", "Canvas2D"]
 category = "systems"
 repo_url = "https://github.com/KeyCode17/web-porto"
-demo_url = ""
+demo_url = "https://daffakaryudi.web.id"
 images = []
