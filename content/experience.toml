@@ -91,11 +91,11 @@ tech = ["Photography", "Teaching"]
 # Education
 [[experience]]
 company = "Universitas Merdeka Malang"
-role = "Bachelor of Technology — Management Information Systems"
+role = "Bachelor of Information Systems"
 start_date = "2021-09"
 end_date = "2025-02"
 summary = "BTech in Management Information Systems, GPA 3.92/4.0"
-details = "Bachelor of Technology in Management Information Systems with a GPA of 3.92/4.0. Active in Photography, Web Development Community, and Chess Club."
+details = "Bachelor of Information Systems with a GPA of 3.92/4.0. Active in Photography, Web Development Community, and Chess Club."
 tech = ["Python", "TensorFlow", "Statistics", "Data Analysis", "Computer Science", "Data Analytics", "Microsoft Excel"]
 kind = "education"
 
