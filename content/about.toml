@@ -1,7 +1,7 @@
 [about]
 name = "Daffa Karyudi"
 title = "AI Software Engineer"
-narrative = "Information Systems graduate, specializing in Generative AI and SaaS Optimization. Currently leading a squad of 5 engineers at Perfect10 AI to deploy an Agentic RAG system that reduced Customer Service handling time by ~40%. Proven track record of building developer tools that increased code review efficiency by 45.1%. Dedicated mentor to 372 students in Python and ML at Bangkit Academy and Harisenin."
+narrative = "Information Systems graduate, specializing in Generative AI and SaaS Optimization. Currently leading a squad of 5 engineers at Perfect10 AI to deploy an Agentic RAG system that reduced Customer Service handling time by ~40%. Proven track record of building developer tools that increased code review efficiency by 45.1%. Dedicated mentor to 372 students at Harisenin."
 facts = [
   { label = "Focus", value = "Agentic AI & SaaS" },
   { label = "Stack", value = "Rust, TypeScript, Python" },

@@ -1,8 +1,8 @@
 [[project]]
 slug = "leafypuff"
 title = "leafyPuff (Rust + Kotlin)"
-short_description = "Local-first diary that works with no network and no account"
-long_description = "Local-first diary app that works with no network and no account: one hexagonal Rust core shared between an Axum sync API and a Jetpack Compose Android client over UniFFI. Ran a single SeaORM entity model over SQLite on device and PostgreSQL on the server, keeping sync additive so an offline device is never broken by the server."
+short_description = "End-to-end encrypted Android diary over a shared Rust core"
+long_description = "Android diary in Jetpack Compose over a Rust core bound through UniFFI: bunny-face moods, stickers, framed photos, calendar and statistics, a PIN and fingerprint lock, SQLite on the device and push-pull sync through an Axum API. End-to-end encrypted, with entries sealed per field on the device under an Argon2id-derived key and a recovery code, so the server stores only ciphertext. A TanStack operator console covers accounts, roles, audit, catalog, privacy requests and release gates."
 tech_stack = ["Rust", "Axum", "SeaORM", "UniFFI", "Kotlin", "Jetpack Compose", "PostgreSQL", "SQLite", "MinIO", "TanStack"]
 category = "systems"
 repo_url = "https://github.com/KeyCode17/leafypuff"
@@ -45,8 +45,8 @@ images = []
 [[project]]
 slug = "px-solver"
 title = "px-solver"
-short_description = "16 Rust crates on crates.io behind a pluggable challenge pipeline"
-long_description = "Rust workspace of 16 library crates published individually to crates.io, built around a pluggable challenge pipeline that routes each request to the handler registered for the protection it detects. Bounded dual-use risk in the design itself: API keys, an explicit per-domain allowlist with reviewed terms of service, and an append-only audit log, with every architectural decision recorded as a numbered ADR."
+short_description = "Three-tier PerimeterX solver across 16 crates on crates.io"
+long_description = "PerimeterX (HUMAN Security) challenge solver built as three tiers: a TTL cookie cache, a stealth-patched Chromium harvester over CDP, and a native _px3 sensor synthesizer reverse-engineered from the obfuscated init.js (base-91 string decoder, XOR and base64 splice cipher) so a solve no longer needs a browser, with Camoufox covering Cloudflare-fronted targets. 16 library crates published to crates.io, 25 numbered ADRs, and dual-use guardrails built into the design: Argon2id API keys, a per-domain allowlist with reviewed terms of service, and an audit log that never records cookie payloads. AGPL-3.0."
 tech_stack = ["Rust", "Axum", "Tokio", "chromiumoxide", "Chrome DevTools Protocol"]
 category = "systems"
 repo_url = "https://github.com/KeyCode17/px-solver"

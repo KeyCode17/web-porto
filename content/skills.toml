@@ -14,7 +14,7 @@ connections = ["Tokio", "Axum", "WASM", "Dioxus", "SeaORM", "Nix"]
 name = "TypeScript"
 category = "language"
 proficiency = 5
-connections = ["Node.js", "Hono", "Drizzle", "React", "TanStack"]
+connections = ["Node.js", "NestJS", "Hono", "Drizzle", "React", "TanStack"]
 
 [[skill]]
 name = "SQL"
@@ -56,7 +56,13 @@ connections = ["PyTorch", "TensorFlow", "Python"]
 name = "Node.js"
 category = "framework"
 proficiency = 3
-connections = ["TypeScript"]
+connections = ["TypeScript", "NestJS"]
+
+[[skill]]
+name = "NestJS"
+category = "framework"
+proficiency = 4
+connections = ["TypeScript", "Node.js", "PostgreSQL"]
 
 [[skill]]
 name = "NumPy"
