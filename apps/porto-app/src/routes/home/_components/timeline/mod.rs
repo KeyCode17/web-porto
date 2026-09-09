@@ -6,8 +6,8 @@ pub mod track;
 
 use self::chart_input::setup_chart_click;
 use self::constants::{
-    BAR_FOCUS_EVENT, FOCUSED_ATTRIBUTE, TIMELINE_CHART_ID, TIMELINE_CONTAINER_ID,
-    TIMELINE_CURSOR_ID, TIMELINE_TRACK_ID,
+    AXIS_HEIGHT, BAR_FOCUS_EVENT, FOCUSED_ATTRIBUTE, ROW_HEIGHT, TIMELINE_CHART_ID,
+    TIMELINE_CONTAINER_ID, TIMELINE_CURSOR_ID, TIMELINE_TRACK_ID, TRACK_PIXELS_PER_YEAR,
 };
 use self::dates::{bar_color, date_to_months, format_date_display, parse_date};
 use self::scroll_hijack::setup_scroll_hijack;
@@ -40,10 +40,14 @@ pub fn Timeline() -> Element {
 
     min_months -= 2.0;
     max_months += 2.0;
-    let total_months = max_months - min_months;
 
+    // Ticks are placed as a percentage of this range, so the range must END on
+    // the last tick or that tick lands past the track and the axis stops short.
     let start_year = (min_months / 12.0).floor() as i32;
     let end_year = (max_months / 12.0).ceil() as i32;
+    let min_months = date_to_months(start_year, 1) - 1.0;
+    let max_months = date_to_months(end_year, 1) + 1.0;
+    let total_months = max_months - min_months;
 
     let mut row_ends: Vec<f64> = Vec::new();
     let mut row_assignments: Vec<usize> = Vec::new();
@@ -73,12 +77,14 @@ pub fn Timeline() -> Element {
     }
 
     let num_rows = row_ends.len();
-    let row_height: usize = 48;
+    let row_height: usize = ROW_HEIGHT;
     let bar_height: usize = 38;
-    let axis_height: usize = 36;
+    let axis_height: usize = AXIS_HEIGHT;
     let _chart_height = num_rows * row_height + axis_height + 20;
 
-    let track_width: usize = 2000;
+    // Derived from the span, so an extra year widens the track instead of
+    // squeezing every existing bar into the same width.
+    let track_width = (total_months / 12.0 * TRACK_PIXELS_PER_YEAR).round() as usize;
     let hijack_height: usize = track_width * 2;
 
     let listeners: Rc<RefCell<Vec<EventListener>>> = use_hook(|| Rc::new(RefCell::new(Vec::new())));

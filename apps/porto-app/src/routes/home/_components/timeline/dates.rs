@@ -1,9 +1,17 @@
+// An open-ended role runs to today, so it has to be read from the clock. A
+// literal here silently freezes every "Present" bar on the date it was typed
+// and drifts a month further out of date every month.
+fn today() -> (i32, u32) {
+    let now = js_sys::Date::new_0();
+    (now.get_full_year() as i32, now.get_month() + 1)
+}
+
 pub fn parse_date(date_str: &str) -> (i32, u32) {
     if date_str.is_empty() {
-        return (2026, 3);
+        return today();
     }
     let parts: Vec<&str> = date_str.split('-').collect();
-    let year = parts[0].parse::<i32>().unwrap_or(2026);
+    let year = parts[0].parse::<i32>().unwrap_or_else(|_| today().0);
     let month = if parts.len() > 1 {
         parts[1].parse::<u32>().unwrap_or(1)
     } else {

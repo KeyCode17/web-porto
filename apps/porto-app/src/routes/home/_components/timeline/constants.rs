@@ -4,3 +4,6 @@ pub const TIMELINE_CHART_ID: &str = "timeline-chart";
 pub const TIMELINE_CURSOR_ID: &str = "timeline-cursor";
 pub const BAR_FOCUS_EVENT: &str = "barfocus";
 pub const FOCUSED_ATTRIBUTE: &str = "data-focused";
+pub const ROW_HEIGHT: usize = 48;
+pub const AXIS_HEIGHT: usize = 36;
+pub const TRACK_PIXELS_PER_YEAR: f64 = 180.0;

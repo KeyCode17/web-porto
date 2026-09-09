@@ -72,17 +72,14 @@ pub fn setup_scroll_hijack(container_id: &str, track_id: &str) -> Option<EventLi
 
         let virtual_pos = scroll_progress * total_virtual;
 
-        let (cursor_x, translate_x);
-        if virtual_pos <= half_chart {
-            cursor_x = virtual_pos;
-            translate_x = 0.0;
-        } else if virtual_pos <= half_chart + max_translate {
-            cursor_x = half_chart;
-            translate_x = virtual_pos - half_chart;
-        } else {
-            cursor_x = half_chart + (virtual_pos - half_chart - max_translate);
-            translate_x = max_translate;
-        }
+        let (cursor_x, translate_x) = match virtual_pos {
+            pos if pos <= half_chart => (pos, 0.0),
+            pos if pos <= half_chart + max_translate => (half_chart, pos - half_chart),
+            pos => (
+                half_chart + (pos - half_chart - max_translate),
+                max_translate,
+            ),
+        };
 
         let _ = track_el
             .style()
@@ -112,19 +109,21 @@ pub fn setup_scroll_hijack(container_id: &str, track_id: &str) -> Option<EventLi
                 let bar_right = bar_rect.right();
                 let intersects = cursor_viewport_x >= bar_left && cursor_viewport_x <= bar_right;
 
-                if intersects {
-                    if !found_intersection || bar_left > best_left {
+                match intersects {
+                    true if !found_intersection || bar_left > best_left => {
                         found_intersection = true;
                         best_left = bar_left;
                         best_index = el.get_attribute("data-bar-index");
                     }
-                } else if !found_intersection {
-                    let bar_center = (bar_left + bar_right) / 2.0;
-                    let dist = (bar_center - cursor_viewport_x).abs();
-                    if dist < best_dist {
-                        best_dist = dist;
-                        best_index = el.get_attribute("data-bar-index");
+                    false if !found_intersection => {
+                        let bar_center = (bar_left + bar_right) / 2.0;
+                        let dist = (bar_center - cursor_viewport_x).abs();
+                        if dist < best_dist {
+                            best_dist = dist;
+                            best_index = el.get_attribute("data-bar-index");
+                        }
                     }
+                    _ => {}
                 }
             }
         }
