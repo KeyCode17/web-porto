@@ -2,7 +2,7 @@ pub mod _canvas;
 pub mod _constants;
 pub mod detail;
 
-use self::_canvas::{ShootingRange, start_range};
+use self::_canvas::{Direction, ShootingRange, start_range};
 use self::_constants::{
     BELT_PITCH_PX, BELT_STAGGER_MS, LOAD_DELAY_MS, RANGE_CANVAS_ID, RANGE_CONTAINER_ID,
     RANGE_TAIL_VH, SCROLL_PER_ROUND_VH,
@@ -127,9 +127,12 @@ pub fn Projects() -> Element {
             let round = *chambered.read();
             let previous = last_round.replace(round);
             let shots = round.abs_diff(previous);
-            let forward = round >= previous;
+            let direction = match round >= previous {
+                true => Direction::Forward,
+                false => Direction::Rewind,
+            };
             if let Some(active_range) = range.borrow().as_ref() {
-                active_range.queue_shots(shots, forward);
+                active_range.queue_shots(shots, direction);
             }
         }
     });
