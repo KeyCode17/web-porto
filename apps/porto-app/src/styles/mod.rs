@@ -1,4 +1,5 @@
 pub mod base;
+pub mod belt;
 pub mod global;
 pub mod papers;
 pub mod projects;

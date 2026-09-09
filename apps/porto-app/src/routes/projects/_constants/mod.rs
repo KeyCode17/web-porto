@@ -1,15 +1,16 @@
-pub const PHASE_SHUFFLE_DELAY_MS: i32 = 200;
-pub const PHASE_DEAL_DELAY_MS: i32 = 600;
-pub const PHASE_READY_DELAY_MS: i32 = 2000;
+pub const RANGE_CANVAS_ID: &str = "projects-range";
+pub const RANGE_CONTAINER_ID: &str = "projects-range-scroll";
 
-pub const CARD_DEALS: &[(&str, &str, &str)] = &[
-    ("\u{2660}", "#E5E5E5", "#D65108"),
-    ("\u{2666}", "#E84040", "#568EA3"),
-    ("\u{2665}", "#E84040", "#02182B"),
-    ("\u{2663}", "#E5E5E5", "#8B1A1A"),
-    ("\u{2666}", "#E84040", "#568EA3"),
-    ("\u{2660}", "#E5E5E5", "#D65108"),
-    ("\u{2665}", "#E84040", "#02182B"),
-    ("\u{2660}", "#E5E5E5", "#D65108"),
-    ("\u{2665}", "#E84040", "#02182B"),
-];
+// Scroll distance per project. A full screen each turned sixteen projects into
+// seventeen screens of scrolling, so rounds come in bursts instead: the whole
+// belt now runs inside roughly three screens.
+pub const SCROLL_PER_ROUND_VH: usize = 13;
+pub const RANGE_TAIL_VH: usize = 60;
+
+pub const LOAD_DELAY_MS: i32 = 180;
+pub const BELT_STAGGER_MS: usize = 45;
+
+// Round width plus the gap between rounds. The strip is centred and shifted by
+// whole multiples of this, so the chambered round always lands under the marker
+// without measuring anything in the DOM.
+pub const BELT_PITCH_PX: f64 = 54.0;

@@ -14,6 +14,7 @@ pub fn base_css() -> String {
 
 html {{
     scroll-behavior: smooth;
+    overscroll-behavior-y: none;
 }}
 
 body {{

@@ -1,18 +1,20 @@
+pub mod _canvas;
 pub mod _constants;
 pub mod detail;
 
+use self::_canvas::{ShootingRange, start_range};
 use self::_constants::{
-    CARD_DEALS, PHASE_DEAL_DELAY_MS, PHASE_READY_DELAY_MS, PHASE_SHUFFLE_DELAY_MS,
+    BELT_PITCH_PX, BELT_STAGGER_MS, LOAD_DELAY_MS, RANGE_CANVAS_ID, RANGE_CONTAINER_ID,
+    RANGE_TAIL_VH, SCROLL_PER_ROUND_VH,
 };
 use crate::data;
+use crate::libs::EventListener;
 use crate::libs::{on_escape, sleep_ms};
 use crate::styles::theme;
 use dioxus::prelude::*;
+use std::cell::{Cell, RefCell};
 use std::rc::Rc;
-
-fn card_deal(index: usize) -> (&'static str, &'static str, &'static str) {
-    CARD_DEALS[index % CARD_DEALS.len()]
-}
+use web_sys::{ScrollBehavior, ScrollToOptions};
 
 fn category_label(cat: &str) -> &'static str {
     match cat {
@@ -24,167 +26,232 @@ fn category_label(cat: &str) -> &'static str {
     }
 }
 
+// Clicking a round scrolls the page to it instead of jumping the state: the
+// scroll handler then fires every round the belt passes on the way, so a click
+// on a distant round reads as a burst rather than a teleport.
+fn scroll_to_round(index: usize, total: usize) {
+    let Some(window) = web_sys::window() else {
+        return;
+    };
+    let Some(container) = window
+        .document()
+        .and_then(|d| d.get_element_by_id(RANGE_CONTAINER_ID))
+    else {
+        return;
+    };
+    let Some(viewport) = window.inner_height().ok().and_then(|v| v.as_f64()) else {
+        return;
+    };
+
+    let rect = container.get_bounding_client_rect();
+    let travel = rect.height() - viewport;
+    if travel <= 0.0 || total == 0 {
+        return;
+    }
+
+    let top = rect.top() + window.scroll_y().unwrap_or(0.0);
+    let progress = (index as f64 + 0.5) / total as f64;
+
+    let opts = ScrollToOptions::new();
+    opts.set_top(top + progress * travel);
+    opts.set_behavior(ScrollBehavior::Smooth);
+    window.scroll_to_with_scroll_to_options(&opts);
+}
+
 #[component]
 pub fn Projects() -> Element {
     let projects = data::load_projects();
-    let mut phase = use_signal(|| 0u8);
+    let total = projects.len();
+    let mut loaded = use_signal(|| false);
+    let mut chambered = use_signal(|| 0usize);
     let mut expanded: Signal<Option<usize>> = use_signal(|| None);
     let mut hovered: Signal<Option<usize>> = use_signal(|| None);
-    let total = projects.len();
-    let mut mobile_idx = use_signal(move || total - 1);
 
     use_future(move || async move {
-        sleep_ms(PHASE_SHUFFLE_DELAY_MS).await;
-        phase.set(1);
-        sleep_ms(PHASE_DEAL_DELAY_MS).await;
-        phase.set(2);
-        sleep_ms(PHASE_READY_DELAY_MS).await;
-        phase.set(3);
+        sleep_ms(LOAD_DELAY_MS).await;
+        loaded.set(true);
     });
 
     let _escape_listener = use_hook(|| Rc::new(on_escape(move || expanded.set(None))));
 
-    let current_phase = *phase.read();
+    let range: Rc<RefCell<Option<ShootingRange>>> = use_hook(|| Rc::new(RefCell::new(None)));
+
+    let _scroll = use_hook(|| {
+        Rc::new(web_sys::window().and_then(|window| {
+            EventListener::new(window.as_ref(), "scroll", move |_| {
+                let Some(container) = web_sys::window()
+                    .and_then(|w| w.document())
+                    .and_then(|d| d.get_element_by_id(RANGE_CONTAINER_ID))
+                else {
+                    return;
+                };
+                let Some(viewport) = web_sys::window()
+                    .and_then(|w| w.inner_height().ok())
+                    .and_then(|v| v.as_f64())
+                else {
+                    return;
+                };
+
+                let rect = container.get_bounding_client_rect();
+                let travel = rect.height() - viewport;
+                if travel <= 0.0 {
+                    return;
+                }
+
+                let progress = (-rect.top() / travel).clamp(0.0, 1.0);
+                let index = ((progress * total as f64) as usize).min(total - 1);
+                if *chambered.peek() != index {
+                    chambered.set(index);
+                }
+            })
+        }))
+    });
+
+    use_effect({
+        let range = range.clone();
+        move || {
+            if range.borrow().is_none() {
+                *range.borrow_mut() = start_range(RANGE_CANVAS_ID);
+            }
+        }
+    });
+
+    // Reading the signal here is what subscribes the effect: every time a round
+    // is chambered the effect re-runs and the range fires once.
+    let last_round = use_hook(|| Rc::new(Cell::new(0usize)));
+
+    use_effect({
+        let range = range.clone();
+        let last_round = last_round.clone();
+        move || {
+            let round = *chambered.read();
+            let previous = last_round.replace(round);
+            let shots = round.abs_diff(previous);
+            let forward = round >= previous;
+            if let Some(active_range) = range.borrow().as_ref() {
+                active_range.queue_shots(shots, forward);
+            }
+        }
+    });
+
+    let is_loaded = *loaded.read();
     let current_expanded = *expanded.read();
-    let current_hovered = *hovered.read();
+    let current = (*chambered.read()).min(projects.len().saturating_sub(1));
     let n = projects.len();
+    let shift = -((current as f64) - (n.saturating_sub(1) as f64) / 2.0) * BELT_PITCH_PX;
+    let active = &projects[current];
+    let active_title = active.title.clone();
+    let active_desc = active.short_description.clone();
+    let active_cat = category_label(&active.category);
+    let active_tech = active.tech_stack.clone();
+    let peek = (*hovered.read()).map(|i| {
+        let project = &projects[i];
+        (
+            i,
+            project.title.clone(),
+            project.tech_stack.join(" \u{00B7} "),
+            (i as f64 - current as f64) * BELT_PITCH_PX,
+        )
+    });
 
     rsx! {
-        div { style: "padding: 4rem 2rem 1rem; height: 100vh; overflow: hidden; background: {theme::DEEP_NAVY}; position: relative;",
-            span { class: "poker-deco", style: "position: absolute; top: 5rem; left: 3rem; font-size: 8rem; opacity: 0.04; color: {theme::MINT_WHITE}; pointer-events: none; user-select: none;", "\u{2660}" }
-            span { class: "poker-deco", style: "position: absolute; top: 4rem; right: 4rem; font-size: 6rem; opacity: 0.04; color: {theme::MINT_WHITE}; pointer-events: none; user-select: none;", "\u{2665}" }
-            span { class: "poker-deco", style: "position: absolute; bottom: 8rem; left: 8rem; font-size: 10rem; opacity: 0.03; color: {theme::MINT_WHITE}; pointer-events: none; user-select: none;", "\u{2666}" }
-            span { class: "poker-deco", style: "position: absolute; bottom: 6rem; right: 6rem; font-size: 7rem; opacity: 0.04; color: {theme::MINT_WHITE}; pointer-events: none; user-select: none;", "\u{2663}" }
-            span { class: "poker-deco", style: "position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 20rem; opacity: 0.02; color: {theme::MINT_WHITE}; pointer-events: none; user-select: none;", "\u{2660}" }
-            h1 {
-                style: "font-size: 6rem; font-weight: 700; color: {theme::MINT_WHITE}; text-transform: uppercase; text-align: center; margin-bottom: 0.5rem; font-family: {theme::FONT_HEADING}; position: relative; z-index: 1;",
-                "PROJECTS"
-            }
-            p {
-                style: "font-family: {theme::FONT_MONO}; font-size: 0.9rem; color: {theme::MUTED_TEAL}; text-align: center; margin-bottom: 1rem; position: relative; z-index: 1;",
-                "PICK A CARD"
-            }
-            div { class: "poker-container",
-                for (i, project) in projects.iter().enumerate() {
-                    {
-                        let (suit, suit_color, bg_color) = card_deal(i);
-                        let angle = if n > 1 {
-                            -45.0 + (i as f64) * (95.0 / (n - 1) as f64)
-                        } else {
-                            0.0
-                        };
-                        let shuffle_rot = ((i as f64 * 7.3) % 11.0) - 5.5;
-                        let shuffle_x = ((i as f64 * 13.7) % 21.0) - 10.5;
-                        let phase_class = match current_phase {
-                            0 => "",
-                            1 => "phase-shuffle",
-                            2 => "phase-dealt",
-                            _ => "phase-dealt phase-ready",
-                        };
-                        let blur_class = match current_expanded {
-                            Some(idx) if idx != i => "blurred",
-                            _ => "",
-                        };
-                        let hover_class = match current_hovered {
-                            Some(idx) if idx == i => "hovered",
-                            _ => "",
-                        };
-                        let card_style = format!(
-                            "background: {}; --final-rot: {}deg; --shuffle-rot: {}deg; --shuffle-x: {}px; --deal-delay: {}ms; --suit-color: {}; z-index: {};",
-                            bg_color, angle, shuffle_rot, shuffle_x, i * 150, suit_color, i + 1
-                        );
-                        let card_class = format!("poker-card {} {} {}", phase_class, blur_class, hover_class);
-                        let cat_label = category_label(&project.category);
-                        let title = project.title.clone();
-                        let slug = project.slug.clone();
-                        let suit_top = suit;
-                        let suit_bottom = suit;
+        div { style: "background: {theme::DEEP_NAVY}; position: relative;",
+            div {
+                id: RANGE_CONTAINER_ID,
+                class: "range-scroll",
+                style: "height: {total * SCROLL_PER_ROUND_VH + RANGE_TAIL_VH}vh;",
 
-                        rsx! {
-                            div {
-                                class: "{card_class}",
-                                style: "{card_style}",
-                                key: "{slug}",
-                                onmouseenter: move |_| { hovered.set(Some(i)); },
-                                onmouseleave: move |_| {
-                                    if *hovered.read() == Some(i) {
-                                        hovered.set(None);
-                                    }
-                                },
-                                onclick: move |_| { expanded.set(Some(i)); },
-                                span { class: "poker-card-suit", "{suit_top}" }
-                                span { class: "poker-card-title", "{title}" }
-                                span { class: "poker-card-category", "{cat_label}" }
-                                span { class: "poker-card-suit-bottom", "{suit_bottom}" }
+                div { class: "range-stage",
+                    canvas { id: RANGE_CANVAS_ID, class: "range-canvas" }
+
+                    div { class: "range-head",
+                        h1 { class: "range-heading", "PROJECTS" }
+                        p { class: "range-sub", "SCROLL TO FIRE" }
+                    }
+
+                    div { class: "range-hud",
+                        span { class: "range-hud-line", "ROUND {current + 1:02} / {n:02}" }
+                        span { class: "range-hud-line", "TARGET {active_cat}" }
+                    }
+
+                    div { class: "range-readout",
+                        h2 { class: "range-title", "{active_title}" }
+                        p { class: "range-desc", "{active_desc}" }
+                        div { class: "range-tags",
+                            for tech in active_tech.iter() {
+                                span { class: "range-tag", "{tech}" }
                             }
                         }
-                    }
-                }
-            }
-
-            div { class: "poker-stack",
-                {
-                    let current_mobile = *mobile_idx.read();
-                    let total = projects.len();
-                    rsx! {
-                        p {
-                            style: "font-family: {theme::FONT_MONO}; font-size: 0.8rem; color: {theme::MUTED_TEAL}; text-align: center; margin-bottom: 0.8rem;",
-                            "{current_mobile + 1} / {total}"
+                        button {
+                            class: "range-open",
+                            r#type: "button",
+                            onclick: move |_| { expanded.set(Some(current)); },
+                            "OPEN DOSSIER"
                         }
-                        div { class: "poker-stack-cards",
-                            for (i, project) in projects.iter().enumerate() {
-                                {
-                                    let (suit, suit_color, bg_color) = card_deal(i);
-                                    let cat_label = category_label(&project.category);
-                                    let title = project.title.clone();
-                                    let slug = project.slug.clone();
-                                    let offset = (i as i32) - (current_mobile as i32);
-                                    let tx = offset as f64 * 75.0;
-                                    let abs_offset = offset.unsigned_abs() as f64;
-                                    let scale = if abs_offset == 0.0 { 1.0 } else if abs_offset == 1.0 { 0.9 } else { 0.85 };
-                                    let opacity = if abs_offset == 0.0 { 1.0 } else if abs_offset == 1.0 { 0.5 } else { 0.0 };
-                                    let z = if offset == 0 { 10 } else if abs_offset == 1.0 { 5 } else { 0 };
-                                    let pe = if offset == 0 { "auto" } else { "none" };
-                                    let card_style = format!(
-                                        "background: {}; --suit-color: {}; transform: translateX({}%) scale({}); z-index: {}; opacity: {}; pointer-events: {};",
-                                        bg_color, suit_color, tx, scale, z, opacity, pe
-                                    );
+                    }
 
-                                    rsx! {
-                                        div {
-                                            class: "poker-stack-card",
-                                            style: "{card_style}",
-                                            key: "m-{slug}",
-                                            onclick: move |_| { expanded.set(Some(i)); },
-                                            span { class: "poker-card-suit", "{suit}" }
-                                            span { class: "poker-stack-title", "{title}" }
-                                            span { class: "poker-card-category", style: "position: static; margin-top: 0.5rem;", "{cat_label}" }
-                                            span { class: "poker-card-suit-bottom", "{suit}" }
+                    if let Some((_, peek_title, peek_tech, peek_offset)) = peek {
+                        div {
+                            class: "range-peek",
+                            style: "transform: translateX(calc(-50% + {peek_offset}px));",
+                            span { class: "range-peek-title", "{peek_title}" }
+                            span { class: "range-peek-tech", "{peek_tech}" }
+                        }
+                    }
+
+                    div { class: "belt-rail",
+                    div {
+                        class: "belt-strip",
+                        style: "transform: translateX({shift}px);",
+                        for (i, project) in projects.iter().enumerate() {
+                            {
+                                let slug = project.slug.clone();
+                                let title = project.title.clone();
+                                let state = match (is_loaded, i == current, i < current) {
+                                    (false, _, _) => "belt-round",
+                                    (true, true, _) => "belt-round loaded chambered",
+                                    (true, false, true) => "belt-round loaded spent",
+                                    (true, false, false) => "belt-round loaded",
+                                };
+                                let style = format!("--load-delay: {}ms;", i * BELT_STAGGER_MS);
+
+                                rsx! {
+                                    button {
+                                        class: "{state}",
+                                        style: "{style}",
+                                        key: "{slug}",
+                                        r#type: "button",
+                                        "aria-label": "{title}",
+                                        onmouseenter: move |_| { hovered.set(Some(i)); },
+                                        onmouseleave: move |_| {
+                                            let leaving = *hovered.read() == Some(i);
+                                            if leaving {
+                                                hovered.set(None);
+                                            }
+                                        },
+                                        onclick: move |_| { scroll_to_round(i, total); },
+                                        svg {
+                                            class: "belt-round-shape",
+                                            view_box: "0 0 40 130",
+                                            preserve_aspect_ratio: "xMidYMax meet",
+                                            path {
+                                                class: "belt-round-bullet",
+                                                d: "M20 2 C15.5 12 14 28 14 47 L26 47 C26 28 24.5 12 20 2 Z",
+                                            }
+                                            path {
+                                                class: "belt-round-case",
+                                                d: "M14 45 L26 45 L26 53 L31 61 L31 110 L29 112 L29 117 L32 119 L32 127 L8 127 L8 119 L11 117 L11 112 L9 110 L9 61 L14 53 Z",
+                                            }
+                                            path {
+                                                class: "belt-round-shine",
+                                                d: "M12.5 62 L16 62 L16 110 L12.5 110 Z",
+                                            }
                                         }
                                     }
                                 }
                             }
                         }
-                        div { style: "display: flex; justify-content: center; gap: 2rem; margin-top: 1rem;",
-                            button {
-                                class: "poker-stack-nav",
-                                disabled: current_mobile == 0,
-                                onclick: move |_| {
-                                    let cur = *mobile_idx.read();
-                                    if cur > 0 { mobile_idx.set(cur - 1); }
-                                },
-                                "\u{2190}"
-                            }
-                            button {
-                                class: "poker-stack-nav",
-                                disabled: current_mobile >= total - 1,
-                                onclick: move |_| {
-                                    let cur = *mobile_idx.read();
-                                    if cur < total - 1 { mobile_idx.set(cur + 1); }
-                                },
-                                "\u{2192}"
-                            }
-                        }
+                    }
                     }
                 }
             }
@@ -192,9 +259,8 @@ pub fn Projects() -> Element {
             if let Some(idx) = current_expanded {
                 {
                     let project = &projects[idx];
-                    let (suit, _suit_color, bg_color) = card_deal(idx);
                     let cat_label = category_label(&project.category);
-                    let expanded_style = format!("background: {};", bg_color);
+                    let expanded_style = format!("background: {};", theme::MUTED_TEAL);
                     let repo_url = project.repo_url.clone();
                     let demo_url = project.demo_url.clone();
                     let long_desc = project.long_description.clone();
@@ -223,7 +289,6 @@ pub fn Projects() -> Element {
                                 "X"
                             }
                             div { class: "poker-expanded-left",
-                                span { class: "poker-expanded-suit", "{suit}" }
                                 h2 { class: "poker-expanded-title", "{title}" }
                                 span { class: "poker-expanded-category-label", "{cat_label}" }
                             }
